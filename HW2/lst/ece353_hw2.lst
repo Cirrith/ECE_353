@@ -1,0 +1,1010 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Filename:     ece353_hw2.s
+    2 00000000         ; Author:       ece353 staff 
+    3 00000000         ; Description:  
+    4 00000000         
+    5 00000000                 export           TEAM
+    6 00000000                 export           PERSON1
+    7 00000000                 export           PERSON2
+    8 00000000                 export           str_emphasize
+    9 00000000         
+   10 00000000                 export           str_length
+   11 00000000         
+   12 00000000                 export           str_copy
+   13 00000000                 export           str_compare
+   14 00000000                 export           str_to_upper
+   15 00000000                 export           str_fill
+   16 00000000         
+   17 00000000                 export           str_icompare
+   18 00000000         
+   19 00000000         ;**********************************************
+   20 00000000         ; SRAM
+   21 00000000         ;**********************************************
+   22 00000000                 AREA             SRAM, READWRITE
+   23 00000000                 align
+   24 00000000         
+   25 00000000         ;**********************************************
+   26 00000000         ; Constant Variables (FLASH) Segment
+   27 00000000         ;**********************************************
+   28 00000000                 AREA             FLASH, CODE, READONLY
+   29 00000000 54 65 61 
+              6D 31 38 TEAM    DCB              "Team18"
+   30 00000006 00              DCB              0
+   31 00000007 52 79 61 
+              6E 20 42 
+              61 6D 62 
+              72 6F 75 
+              67 68    PERSON1 DCB              "Ryan Bambrough"
+   32 00000015 00              DCB              0
+   33 00000016 4E 69 63 
+              68 6F 6C 
+              61 73 20 
+              41 64 61 
+              6D 73    PERSON2 DCB              "Nicholas Adams"
+   34 00000024 00              DCB              0
+   35 00000025 00 00 00        align
+   36 00000028         
+   37 00000028         ;**********************************************
+   38 00000028         ; Code (FLASH) Segment
+   39 00000028         ;**********************************************
+   40 00000028         
+   41 00000028         
+   42 00000028         ;*******************************************************
+                       **********************
+   43 00000028         ; str_length
+   44 00000028         ;
+   45 00000028         ; Description: Returns the length of a null terminated s
+                       tring.  
+   46 00000028         ;
+   47 00000028         ; Parameters
+   48 00000028         ;    R0                : The address of the string being
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+                        examined
+   49 00000028         ;
+   50 00000028         ; Return values:     Description
+   51 00000028         ; R15
+   52 00000028         ;  -1                         : NULL pointer passed in
+   53 00000028         ;  -2                         : max. string length excee
+                       ded
+   54 00000028         ;  string length              : String length (max 1024)
+                       
+   55 00000028         ; 
+   56 00000028         ; C Prototype
+   57 00000028         ;     int32_t str_length(char *string)
+   58 00000028         ;*******************************************************
+                       **********************
+   59 00000028         
+   60 00000028         ;R0 = I/O
+   61 00000028         ;R1 = Counter
+   62 00000028         ;R2 = Cur Value
+   63 00000028         
+   64 00000028         str_length
+                               PROC
+   65 00000028 B406            PUSH             {R1,R2}
+   66 0000002A 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+   67 0000002C BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+   68 00000032 D00F            BEQ              Ret_l
+   69 00000034 F04F 0100       MOV              R1, #0
+   70 00000038         While_l                              ; While Loaded Valu
+                                                            e != 0
+   71 00000038 5C42            LDRB             R2, [R0, R1]
+   72 0000003A F101 0101       ADD              R1, R1, #1  ; Update total leng
+                                                            th
+   73 0000003E         
+   74 0000003E F5B1 6F80       CMP              R1, #1024   ; Return -2 if > 10
+                                                            24
+   75 00000042 BFC8 F06F 
+              0001             MOVGT            R0, #-2
+   76 00000048 D004            BEQ              Ret_l
+   77 0000004A         
+   78 0000004A 2A00            CMP              R2, #0      ; At end of string?
+                                                            
+   79 0000004C BF08 4608       MOVEQ            R0, R1      ; Move length to re
+                                                            turn reg
+   80 00000050 D000            BEQ              Ret_l
+   81 00000052 E7F1            B                While_l
+   82 00000054         
+   83 00000054         Ret_l
+   84 00000054 BC06            POP              {R1,R2}
+   85 00000056 4770            BX               LR
+   86 00000058                 ENDP
+   87 00000058         
+   88 00000058         ;**********************************************
+   89 00000058         ; str_copy
+   90 00000058         ;
+   91 00000058         ; Description: Copies a string from the src address to t
+                       he dest.  
+   92 00000058         ;
+   93 00000058         ;    Parameters
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   94 00000058         ;    R0                : The address where the string wi
+                       ll be copied from
+   95 00000058         ;    R1                : The address where the string wi
+                       ll be copied to
+   96 00000058         ;    R2                : length of the string (max 1024)
+                       
+   97 00000058         ;
+   98 00000058         ; Return values:      Description
+   99 00000058         ; R0
+  100 00000058         ;  -1                        : Invalid address for src o
+                       r dest
+  101 00000058         ;  -2                        : max. string length exceed
+                       ed
+  102 00000058         ;   0                        : Success
+  103 00000058         ;
+  104 00000058         ; C Prototype
+  105 00000058         ;     int32_t str_copy(char *src, char *dest, uint16_t s
+                       ize)
+  106 00000058         ;**********************************************
+  107 00000058         
+  108 00000058         ;R0 = From
+  109 00000058         ;R1 = To
+  110 00000058         ;R2 = Remaining
+  111 00000058         ;R3 = Temporary Storage
+  112 00000058         
+  113 00000058         str_copy
+                               PROC
+  114 00000058 B408            PUSH             {R3}
+  115 0000005A         
+  116 0000005A 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  117 0000005C BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  118 00000062 D012            BEQ              Ret_c
+  119 00000064         
+  120 00000064 2900            CMP              R1, #0      ; Tests if NULL ptr
+                                                            
+  121 00000066 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  122 0000006C D00D            BEQ              Ret_c
+  123 0000006E         
+  124 0000006E F5B2 6F80       CMP              R2, #1024   ; Check for max len
+                                                            gth
+  125 00000072 BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  126 00000078 DC07            BGT              Ret_c
+  127 0000007A         
+  128 0000007A         For_c                                ; For <length, leng
+                                                            th --
+  129 0000007A 5C83            LDRB             R3, [R0, R2] ; Moving backwards
+                                                            
+  130 0000007C 548B            STRB             R3, [R1, R2]
+  131 0000007E         
+  132 0000007E F1A2 0201       SUB              R2, R2, #1
+  133 00000082 2A00            CMP              R2, #0      ; Check if at start
+                                                             of string
+  134 00000084 DAF9            BGE              For_c
+  135 00000086 F04F 0000       MOV              R0, #0
+  136 0000008A         
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  137 0000008A         Ret_c
+  138 0000008A BC08            POP              {R3}
+  139 0000008C 4770            BX               LR
+  140 0000008E                 ENDP
+  141 0000008E         
+  142 0000008E         ;*******************************************************
+                       **********************
+  143 0000008E         ; str_compare
+  144 0000008E         ;
+  145 0000008E         ; Description: Compares to see if two strings are identi
+                       cal.  
+  146 0000008E         ;
+  147 0000008E         ; Parameters
+  148 0000008E         ;   R0             : The address of the 1st string
+  149 0000008E         ;   R1            : The address of the 2nd string
+  150 0000008E         ;   R2             : length of the string (max 1024)
+  151 0000008E         ;
+  152 0000008E         ; Return values:     Description
+  153 0000008E         ;  -1                          : Invalid address for src
+                        or dest
+  154 0000008E         ;  -2                          : max. string length exce
+                       eded
+  155 0000008E         ;   0                          : match
+  156 0000008E         ;   1                          : does not match
+  157 0000008E         ;
+  158 0000008E         ; C Prototype
+  159 0000008E         ;    int32_t str_compare(char *str_A, char *str_B, uint1
+                       6_t size)
+  160 0000008E         ;*******************************************************
+                       **********************
+  161 0000008E         
+  162 0000008E         ;R0 = With
+  163 0000008E         ;R1 = What
+  164 0000008E         ;R2 = Length
+  165 0000008E         ;R3 = Stor1
+  166 0000008E         ;R4 = Stor2
+  167 0000008E         
+  168 0000008E         str_compare
+                               PROC
+  169 0000008E B418            PUSH             {R3,R4}
+  170 00000090         
+  171 00000090 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  172 00000092 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  173 00000098 D019            BEQ              Ret_cmp
+  174 0000009A         
+  175 0000009A 2900            CMP              R1, #0      ; Tests if NULL ptr
+                                                            
+  176 0000009C BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  177 000000A2 D014            BEQ              Ret_cmp
+  178 000000A4         
+  179 000000A4 F5B2 6F80       CMP              R2, #1024   ; Check for max len
+                                                            gth
+  180 000000A8 BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  181 000000AE DC0E            BGT              Ret_cmp
+  182 000000B0         
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  183 000000B0 F1A2 0201       SUB              R2, R2, #1
+  184 000000B4         For_cmp
+  185 000000B4 5C83            LDRB             R3, [R0, R2] ; Load characters
+  186 000000B6 5C8C            LDRB             R4, [R1, R2]
+  187 000000B8         
+  188 000000B8 F1A2 0201       SUB              R2, R2, #1  ; decrement size
+  189 000000BC 42A3            CMP              R3, R4      ; Return 1 if !=
+  190 000000BE D104            BNE              Fin_cmp
+  191 000000C0         
+  192 000000C0 2A00            CMP              R2, #0      ; Return match
+  193 000000C2 BF08 2000       MOVEQ            R0, #0
+  194 000000C6 D002            BEQ              Ret_cmp
+  195 000000C8 E7F4            B                For_cmp
+  196 000000CA         Fin_cmp
+  197 000000CA F04F 0001       MOV              R0, #1      ; Return not match
+  198 000000CE         
+  199 000000CE         Ret_cmp
+  200 000000CE BC18            POP              {R3,R4}
+  201 000000D0 4770            BX               LR
+  202 000000D2                 ENDP
+  203 000000D2         
+  204 000000D2         ;R0 = With
+  205 000000D2         ;R1 = What
+  206 000000D2         ;R2 = Length
+  207 000000D2         ;R3 = Stor1
+  208 000000D2         ;R4 = Stor2
+  209 000000D2         ;R5 = tmp
+  210 000000D2         
+  211 000000D2         str_icompare
+                               PROC
+  212 000000D2 B418            PUSH             {R3,R4}
+  213 000000D4         
+  214 000000D4 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  215 000000D6 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  216 000000DC D034            BEQ              Ret_icmp
+  217 000000DE         
+  218 000000DE 2900            CMP              R1, #0      ; Tests if NULL ptr
+                                                            
+  219 000000E0 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  220 000000E6 D02F            BEQ              Ret_icmp
+  221 000000E8         
+  222 000000E8 F5B2 6F80       CMP              R2, #1024   ; Check for max len
+                                                            gth
+  223 000000EC BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  224 000000F2 DC29            BGT              Ret_icmp
+  225 000000F4         
+  226 000000F4 F1A2 0201       SUB              R2, R2, #1
+  227 000000F8         For_icmp
+  228 000000F8 5C83            LDRB             R3, [R0, R2] ; Load characters
+  229 000000FA 5C8C            LDRB             R4, [R1, R2]
+  230 000000FC F1A2 0201       SUB              R2, R2, #1  ; decrement size
+  231 00000100         
+  232 00000100 42A3            CMP              R3, R4      ; 1) Equal
+  233 00000102 D01A            BEQ              equal
+  234 00000104         
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  235 00000104 2B41            CMP              R3, #65     ; this is a letter?
+                                                            
+  236 00000106 DB1D            BLT              Fin_icmp
+  237 00000108 2B7A            CMP              R3, #122
+  238 0000010A DC1B            BGT              Fin_icmp
+  239 0000010C         
+  240 0000010C 2B5A            CMP              R3, #90
+  241 0000010E DD02            BLE              next_char
+  242 00000110 2B61            CMP              R3, #97
+  243 00000112 DA00            BGE              next_char
+  244 00000114 E016            B                Fin_icmp
+  245 00000116         
+  246 00000116         next_char
+  247 00000116 2C41            CMP              R4, #65     ; this is a letter?
+                                                            
+  248 00000118 DB14            BLT              Fin_icmp
+  249 0000011A 2C7A            CMP              R4, #122
+  250 0000011C DC12            BGT              Fin_icmp
+  251 0000011E         
+  252 0000011E 2C5A            CMP              R4, #90
+  253 00000120 DD02            BLE              test_char
+  254 00000122 2C61            CMP              R4, #97
+  255 00000124 DA00            BGE              test_char
+  256 00000126 E00D            B                Fin_icmp
+  257 00000128         
+  258 00000128         test_char
+  259 00000128 F104 0420       ADD              R4, R4, #32
+  260 0000012C 42A3            CMP              R3, R4
+  261 0000012E D004            BEQ              equal
+  262 00000130         
+  263 00000130 F1A4 0440       SUB              R4, R4, #64
+  264 00000134 42A3            CMP              R3, R4
+  265 00000136 D000            BEQ              equal
+  266 00000138         
+  267 00000138 E004            B                Fin_icmp
+  268 0000013A         
+  269 0000013A         equal
+  270 0000013A 2A00            CMP              R2, #0      ; Return match
+  271 0000013C BF08 2000       MOVEQ            R0, #0
+  272 00000140 D002            BEQ              Ret_icmp
+  273 00000142 E7D9            B                For_icmp
+  274 00000144         Fin_icmp
+  275 00000144 F04F 0001       MOV              R0, #1      ; Return not match
+  276 00000148         
+  277 00000148         Ret_icmp
+  278 00000148 BC18            POP              {R3,R4}
+  279 0000014A 4770            BX               LR
+  280 0000014C                 ENDP
+  281 0000014C         
+  282 0000014C         ;*******************************************************
+                       **********************
+  283 0000014C         ; str_to_upper
+  284 0000014C         ;
+  285 0000014C         ; Description: All alphabetic characters are converted t
+                       o upper case.
+  286 0000014C         ;
+  287 0000014C         ; Parameters
+  288 0000014C         ;  1st Param                    : Address of string bein
+                       g converted to upper case
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+  289 0000014C         ;  2nd Param                    : length of the string (
+                       max 1024)
+  290 0000014C         ;
+  291 0000014C         ; Return values:    Description
+  292 0000014C         ;  -1                           : Invalid address for sr
+                       c or dest
+  293 0000014C         ;  -2                           : max. string length exc
+                       eeded
+  294 0000014C         ;   0                           : success
+  295 0000014C         ; C Prototype
+  296 0000014C         ; int32_t str_to_upper(char *str, uint16_t size)
+  297 0000014C         ;*******************************************************
+                       **********************
+  298 0000014C         
+  299 0000014C         ; R0 String
+  300 0000014C         ; R1 Length
+  301 0000014C         ; R2 character
+  302 0000014C         
+  303 0000014C         str_to_upper
+                               PROC
+  304 0000014C B404            PUSH             {R2}
+  305 0000014E         
+  306 0000014E 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  307 00000150 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  308 00000156 D01C            BEQ              Ret_up
+  309 00000158         
+  310 00000158 F5B1 6F80       CMP              R1, #1024   ; Check for max len
+                                                            gth
+  311 0000015C BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  312 00000162 DC16            BGT              Ret_up
+  313 00000164         
+  314 00000164 F1A1 0101       SUB              R1, R1, #1  ; Don't touch \0
+  315 00000168         For_up
+  316 00000168 5C42            LDRB             R2, [R0, R1] ; Load character
+  317 0000016A F1A1 0101       SUB              R1, R1, #1
+  318 0000016E         
+  319 0000016E F1B1 3FFF       CMP              R1, #-1     ; Return 0 if at st
+                                                            art of string
+  320 00000172 BFB8 F04F 
+              30FF             MOVLT            R0, #-1
+  321 00000178 DB0B            BLT              Ret_up
+  322 0000017A         
+  323 0000017A 2A61            CMP              R2, #97     ; Is this a lowerca
+                                                            se letter?
+  324 0000017C DBF4            BLT              For_up
+  325 0000017E 2A7A            CMP              R2, #122
+  326 00000180 DCF2            BGT              For_up
+  327 00000182         
+  328 00000182 F1A2 0220       SUB              R2, R2, #32
+  329 00000186 F101 0101       ADD              R1, R1, #1
+  330 0000018A 5442            STRB             R2, [R0, R1]
+  331 0000018C F1A1 0101       SUB              R1, R1, #1
+  332 00000190 E7EA            B                For_up
+  333 00000192         
+  334 00000192         Ret_up
+  335 00000192 BC04            POP              {R2}
+
+
+
+ARM Macro Assembler    Page 8 
+
+
+  336 00000194 4770            BX               LR
+  337 00000196                 ENDP
+  338 00000196         
+  339 00000196         ;*******************************************************
+                       **********************
+  340 00000196         ; str_fill
+  341 00000196         ;
+  342 00000196         ; Description: Fills an entire string with a given value
+                       
+  343 00000196         ;
+  344 00000196         ; Parameters
+  345 00000196         ;  1st Param                : The address of the string 
+                       
+  346 00000196         ;  2nd Param                : value to write into the st
+                       ring
+  347 00000196         ;  3rd Param                : length of the string (max 
+                       of 1024)
+  348 00000196         ;
+  349 00000196         ; Return values:             Description
+  350 00000196         ;  -1                        : Invalid address for src o
+                       r dest
+  351 00000196         ;  -2                        : max. string length exceed
+                       ed
+  352 00000196         ;   0                        : success
+  353 00000196         ;
+  354 00000196         ; C Prototpye
+  355 00000196         ;    int32_t str_fill(char *str, char value, uint16_t si
+                       ze)
+  356 00000196         ;*******************************************************
+                       **********************
+  357 00000196         ; R0 String
+  358 00000196         ; R1 character
+  359 00000196         ; R2 Length
+  360 00000196         
+  361 00000196         str_fill
+                               PROC
+  362 00000196 B404            PUSH             {R2}
+  363 00000198         
+  364 00000198 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  365 0000019A BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  366 000001A0 D00F            BEQ              Ret_f
+  367 000001A2         
+  368 000001A2 F5B2 6F80       CMP              R2, #1024   ; Check for max len
+                                                            gth
+  369 000001A6 BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  370 000001AC DC09            BGT              Ret_f
+  371 000001AE         
+  372 000001AE F1A2 0201       SUB              R2, R2, #1  ; Don't touch \0
+  373 000001B2         For_f
+  374 000001B2 F1A2 0201       SUB              R2, R2, #1
+  375 000001B6         
+  376 000001B6 2A00            CMP              R2, #0      ; Return 0 if at st
+                                                            art of string
+  377 000001B8 BFB8 2000       MOVLT            R0, #0
+  378 000001BC DB01            BLT              Ret_f
+  379 000001BE         
+
+
+
+ARM Macro Assembler    Page 9 
+
+
+  380 000001BE 5481            STRB             R1, [R0, R2]
+  381 000001C0 E7F7            B                For_f
+  382 000001C2         
+  383 000001C2         Ret_f
+  384 000001C2 BC04            POP              {R2}
+  385 000001C4 4770            BX               LR
+  386 000001C6                 ENDP
+  387 000001C6         
+  388 000001C6         ;*******************************************************
+                       **********************
+  389 000001C6         ; str_emphasize
+  390 000001C6         ;
+  391 000001C6         ; Description: Performs a case insensitive search for a 
+                       substring in text.  
+  392 000001C6         ; Any substrings that will be found will be converted to
+                        UPPERCASE.  The 
+  393 000001C6         ; function will return how many occurrances of the subst
+                       ring were found
+  394 000001C6         ;
+  395 000001C6         ;    Parameters
+  396 000001C6         ;    1st Param           : The address of the text strin
+                       g that will be searched.  
+  397 000001C6         ;                        : The maximum length of this st
+                       ring is 1024 characters
+  398 000001C6         ;
+  399 000001C6         ;  2nd Param           : The address of the sub-string i
+                       n 'text' that will be 
+  400 000001C6         ;                        : emphasized.  The maximum leng
+                       th of the search text is
+  401 000001C6         ;                        : 1024 characters.
+  402 000001C6         ;
+  403 000001C6         ; Return values:
+  404 000001C6         ;  -1                        : Invalid address for src o
+                       r dest
+  405 000001C6         ;  -2                        : max. string length exceed
+                       ed
+  406 000001C6         ;                            : The function will return 
+                       how many occurrances of the 
+  407 000001C6         ;                            : substring were found
+  408 000001C6         ; C Prototype
+  409 000001C6         ;    int32_t str_emphasize(char *text, char *search)
+  410 000001C6         ;*******************************************************
+                       **********************
+  411 000001C6         ; R0 - string to be searched
+  412 000001C6         ; R1 - search term
+  413 000001C6         ; R2 - length of term
+  414 000001C6         ; R3 - length of string
+  415 000001C6         ; R4 - index of search string current char
+  416 000001C6         ; R5 - R0 base
+  417 000001C6         ; R6 - current char of search string
+  418 000001C6         ; R7 - current char of search search term
+  419 000001C6         ; R8 - Counter
+  420 000001C6         ; R9 - tmp
+  421 000001C6         ; R10 - tmp
+  422 000001C6         str_emphasize
+                               PROC
+  423 000001C6 E92D 47FC       PUSH             {R2-R10, R14}
+  424 000001CA 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+
+
+
+ARM Macro Assembler    Page 10 
+
+
+  425 000001CC BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  426 000001D2 D03C            BEQ              Ret_emp
+  427 000001D4         
+  428 000001D4 2900            CMP              R1, #0      ; Tests if NULL ptr
+                                                            
+  429 000001D6 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  430 000001DC D037            BEQ              Ret_emp
+  431 000001DE         
+  432 000001DE 4682            MOV              R10, R0     ; Test if search st
+                                                            ring is too long
+  433 000001E0 F7FF FFFE       BL               str_length
+  434 000001E4 2800            CMP              R0, #0
+  435 000001E6 DB32            BLT              Ret_emp
+  436 000001E8 4603            MOV              R3, R0
+  437 000001EA         
+  438 000001EA 4608            MOV              R0, R1      ; Test if search te
+                                                            rm is too long
+  439 000001EC F7FF FFFE       BL               str_length
+  440 000001F0 2800            CMP              R0, #0
+  441 000001F2 DB2C            BLT              Ret_emp
+  442 000001F4 4602            MOV              R2, R0
+  443 000001F6         
+  444 000001F6 4650            MOV              R0, R10     ; Return R0
+  445 000001F8         
+  446 000001F8 429A            CMP              R2, R3      ; Give up if term >
+                                                             string
+  447 000001FA BFC8 2000       MOVGT            R0, #0
+  448 000001FE DC26            BGT              Ret_emp
+  449 00000200         
+  450 00000200 F1A2 0201       SUB              R2, R2, #1  ; Don't compare \0
+  451 00000204 F1A3 0301       SUB              R3, R3, #1  ; Don't compare \0
+  452 00000208         
+  453 00000208 F04F 0400       MOV              R4, #0
+  454 0000020C 4605            MOV              R5, R0
+  455 0000020E F04F 0800       MOV              R8, #0
+  456 00000212         
+  457 00000212         ; LOOP
+  458 00000212         ; Chuckin' Method
+  459 00000212         For_emp
+  460 00000212 EBA3 0902       SUB              R9, R3, R2
+  461 00000216 EBA9 0904       SUB              R9, R9, R4
+  462 0000021A F1B9 0F00       CMP              R9, #0
+  463 0000021E DB15            BLT              Fin_emp
+  464 00000220         
+  465 00000220 EB05 0004       ADD              R0, R5, R4
+  466 00000224 4691            MOV              R9, R2
+  467 00000226 F7FF FFFE       BL               str_icompare
+  468 0000022A 464A            MOV              R2, R9
+  469 0000022C         
+  470 0000022C 2801            CMP              R0, #1
+  471 0000022E BF08 1C64       ADDEQ            R4, R4, #1
+  472 00000232 D0EE            BEQ              For_emp
+  473 00000234         
+  474 00000234 F108 0801       ADD              R8, R8, #1
+  475 00000238         
+  476 00000238 EB05 0004       ADD              R0, R5, R4
+  477 0000023C 4689            MOV              R9, R1
+
+
+
+ARM Macro Assembler    Page 11 
+
+
+  478 0000023E 4611            MOV              R1, R2
+  479 00000240 F7FF FFFE       BL               str_to_upper
+  480 00000244 4649            MOV              R1, R9
+  481 00000246         
+  482 00000246 F104 0401       ADD              R4, R4, #1
+  483 0000024A E7E2            B                For_emp
+  484 0000024C         Fin_emp
+  485 0000024C 4640            MOV              R0, R8
+  486 0000024E         
+  487 0000024E         Ret_emp
+  488 0000024E E8BD 47FC       POP              {R2-R10, R14}
+  489 00000252 4770            BX               LR
+  490 00000254                 ENDP
+  491 00000254         
+  492 00000254         
+  493 00000254                 align
+  494 00000254         
+  495 00000254         
+  496 00000254                 END
+Command Line: --debug --xref --cpu=Cortex-M4.fp --apcs=interwork --depend=.\obj
+\ece353_hw2.d -o.\obj\ece353_hw2.o -II:\College\ECE_353\HW2\RTE -IC:\AppV\mdk_5
+10\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include -IC:\AppV\mdk_510\ARM\PACK\Keil\TM4C_
+DFP\1.0.0\Device\Include\TM4C123 --predefine="__EVAL SETA 1" --predefine="__MIC
+ROLIB SETA 1" --list=.\lst\ece353_hw2.lst ece353_hw2.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+SRAM 00000000
+
+Symbol: SRAM
+   Definitions
+      At line 22 in file ece353_hw2.s
+   Uses
+      None
+Comment: SRAM unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+FLASH 00000000
+
+Symbol: FLASH
+   Definitions
+      At line 28 in file ece353_hw2.s
+   Uses
+      None
+Comment: FLASH unused
+Fin_cmp 000000CA
+
+Symbol: Fin_cmp
+   Definitions
+      At line 196 in file ece353_hw2.s
+   Uses
+      At line 190 in file ece353_hw2.s
+Comment: Fin_cmp used once
+Fin_emp 0000024C
+
+Symbol: Fin_emp
+   Definitions
+      At line 484 in file ece353_hw2.s
+   Uses
+      At line 463 in file ece353_hw2.s
+Comment: Fin_emp used once
+Fin_icmp 00000144
+
+Symbol: Fin_icmp
+   Definitions
+      At line 274 in file ece353_hw2.s
+   Uses
+      At line 236 in file ece353_hw2.s
+      At line 238 in file ece353_hw2.s
+      At line 244 in file ece353_hw2.s
+      At line 248 in file ece353_hw2.s
+      At line 250 in file ece353_hw2.s
+      At line 256 in file ece353_hw2.s
+      At line 267 in file ece353_hw2.s
+
+For_c 0000007A
+
+Symbol: For_c
+   Definitions
+      At line 128 in file ece353_hw2.s
+   Uses
+      At line 134 in file ece353_hw2.s
+Comment: For_c used once
+For_cmp 000000B4
+
+Symbol: For_cmp
+   Definitions
+      At line 184 in file ece353_hw2.s
+   Uses
+      At line 195 in file ece353_hw2.s
+Comment: For_cmp used once
+For_emp 00000212
+
+Symbol: For_emp
+   Definitions
+      At line 459 in file ece353_hw2.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+   Uses
+      At line 472 in file ece353_hw2.s
+      At line 483 in file ece353_hw2.s
+
+For_f 000001B2
+
+Symbol: For_f
+   Definitions
+      At line 373 in file ece353_hw2.s
+   Uses
+      At line 381 in file ece353_hw2.s
+Comment: For_f used once
+For_icmp 000000F8
+
+Symbol: For_icmp
+   Definitions
+      At line 227 in file ece353_hw2.s
+   Uses
+      At line 273 in file ece353_hw2.s
+Comment: For_icmp used once
+For_up 00000168
+
+Symbol: For_up
+   Definitions
+      At line 315 in file ece353_hw2.s
+   Uses
+      At line 324 in file ece353_hw2.s
+      At line 326 in file ece353_hw2.s
+      At line 332 in file ece353_hw2.s
+
+PERSON1 00000007
+
+Symbol: PERSON1
+   Definitions
+      At line 31 in file ece353_hw2.s
+   Uses
+      At line 6 in file ece353_hw2.s
+Comment: PERSON1 used once
+PERSON2 00000016
+
+Symbol: PERSON2
+   Definitions
+      At line 33 in file ece353_hw2.s
+   Uses
+      At line 7 in file ece353_hw2.s
+Comment: PERSON2 used once
+Ret_c 0000008A
+
+Symbol: Ret_c
+   Definitions
+      At line 137 in file ece353_hw2.s
+   Uses
+      At line 118 in file ece353_hw2.s
+      At line 122 in file ece353_hw2.s
+      At line 126 in file ece353_hw2.s
+
+Ret_cmp 000000CE
+
+Symbol: Ret_cmp
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 199 in file ece353_hw2.s
+   Uses
+      At line 173 in file ece353_hw2.s
+      At line 177 in file ece353_hw2.s
+      At line 181 in file ece353_hw2.s
+      At line 194 in file ece353_hw2.s
+
+Ret_emp 0000024E
+
+Symbol: Ret_emp
+   Definitions
+      At line 487 in file ece353_hw2.s
+   Uses
+      At line 426 in file ece353_hw2.s
+      At line 430 in file ece353_hw2.s
+      At line 435 in file ece353_hw2.s
+      At line 441 in file ece353_hw2.s
+      At line 448 in file ece353_hw2.s
+
+Ret_f 000001C2
+
+Symbol: Ret_f
+   Definitions
+      At line 383 in file ece353_hw2.s
+   Uses
+      At line 366 in file ece353_hw2.s
+      At line 370 in file ece353_hw2.s
+      At line 378 in file ece353_hw2.s
+
+Ret_icmp 00000148
+
+Symbol: Ret_icmp
+   Definitions
+      At line 277 in file ece353_hw2.s
+   Uses
+      At line 216 in file ece353_hw2.s
+      At line 220 in file ece353_hw2.s
+      At line 224 in file ece353_hw2.s
+      At line 272 in file ece353_hw2.s
+
+Ret_l 00000054
+
+Symbol: Ret_l
+   Definitions
+      At line 83 in file ece353_hw2.s
+   Uses
+      At line 68 in file ece353_hw2.s
+      At line 76 in file ece353_hw2.s
+      At line 80 in file ece353_hw2.s
+
+Ret_up 00000192
+
+Symbol: Ret_up
+   Definitions
+      At line 334 in file ece353_hw2.s
+   Uses
+      At line 308 in file ece353_hw2.s
+      At line 312 in file ece353_hw2.s
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 321 in file ece353_hw2.s
+
+TEAM 00000000
+
+Symbol: TEAM
+   Definitions
+      At line 29 in file ece353_hw2.s
+   Uses
+      At line 5 in file ece353_hw2.s
+Comment: TEAM used once
+While_l 00000038
+
+Symbol: While_l
+   Definitions
+      At line 70 in file ece353_hw2.s
+   Uses
+      At line 81 in file ece353_hw2.s
+Comment: While_l used once
+equal 0000013A
+
+Symbol: equal
+   Definitions
+      At line 269 in file ece353_hw2.s
+   Uses
+      At line 233 in file ece353_hw2.s
+      At line 261 in file ece353_hw2.s
+      At line 265 in file ece353_hw2.s
+
+next_char 00000116
+
+Symbol: next_char
+   Definitions
+      At line 246 in file ece353_hw2.s
+   Uses
+      At line 241 in file ece353_hw2.s
+      At line 243 in file ece353_hw2.s
+
+str_compare 0000008E
+
+Symbol: str_compare
+   Definitions
+      At line 168 in file ece353_hw2.s
+   Uses
+      At line 13 in file ece353_hw2.s
+Comment: str_compare used once
+str_copy 00000058
+
+Symbol: str_copy
+   Definitions
+      At line 113 in file ece353_hw2.s
+   Uses
+      At line 12 in file ece353_hw2.s
+Comment: str_copy used once
+str_emphasize 000001C6
+
+Symbol: str_emphasize
+   Definitions
+      At line 422 in file ece353_hw2.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 8 in file ece353_hw2.s
+Comment: str_emphasize used once
+str_fill 00000196
+
+Symbol: str_fill
+   Definitions
+      At line 361 in file ece353_hw2.s
+   Uses
+      At line 15 in file ece353_hw2.s
+Comment: str_fill used once
+str_icompare 000000D2
+
+Symbol: str_icompare
+   Definitions
+      At line 211 in file ece353_hw2.s
+   Uses
+      At line 17 in file ece353_hw2.s
+      At line 467 in file ece353_hw2.s
+
+str_length 00000028
+
+Symbol: str_length
+   Definitions
+      At line 64 in file ece353_hw2.s
+   Uses
+      At line 10 in file ece353_hw2.s
+      At line 433 in file ece353_hw2.s
+      At line 439 in file ece353_hw2.s
+
+str_to_upper 0000014C
+
+Symbol: str_to_upper
+   Definitions
+      At line 303 in file ece353_hw2.s
+   Uses
+      At line 14 in file ece353_hw2.s
+      At line 479 in file ece353_hw2.s
+
+test_char 00000128
+
+Symbol: test_char
+   Definitions
+      At line 258 in file ece353_hw2.s
+   Uses
+      At line 253 in file ece353_hw2.s
+      At line 255 in file ece353_hw2.s
+
+31 symbols
+365 symbols in table
