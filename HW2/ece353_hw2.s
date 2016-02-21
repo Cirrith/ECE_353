@@ -62,7 +62,6 @@ PERSON2     DCB     "Nicholas Adams"
 ;R2 = Cur Value
 
 str_length   PROC
-    PUSH {R1,R2}
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
 	BEQ Ret_l
@@ -81,7 +80,6 @@ While_l					; While Loaded Value != 0
 	B While_l
 
 Ret_l
-	POP {R1,R2}
     BX  LR
     ENDP
         
@@ -110,9 +108,7 @@ Ret_l
 ;R2 = Remaining
 ;R3 = Temporary Storage
 	
-str_copy   PROC
-	PUSH {R3}
-	
+str_copy   PROC	
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
 	BEQ Ret_c
@@ -135,7 +131,6 @@ For_c					; For <length, length --
 	MOV R0, #0
 
 Ret_c
-	POP {R3}
     BX  LR
     ENDP
         
@@ -166,7 +161,7 @@ Ret_c
 ;R4 = Stor2
 	
 str_compare   PROC
-	PUSH {R3,R4}
+	PUSH {R4}
 	
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
@@ -197,7 +192,7 @@ Fin_cmp
 	MOV R0, #1			; Return not match
 
 Ret_cmp
-	POP {R3,R4}
+	POP {R4}
     BX  LR
     ENDP
 		
@@ -209,7 +204,7 @@ Ret_cmp
 ;R5 = tmp
 	
 str_icompare   PROC
-	PUSH {R3,R4}
+	PUSH {R4}
 	
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
@@ -275,7 +270,7 @@ Fin_icmp
 	MOV R0, #1			; Return not match
 
 Ret_icmp
-	POP {R3,R4}
+	POP {R4}
     BX  LR
     ENDP
         
@@ -300,9 +295,7 @@ Ret_icmp
 ; R1 Length
 ; R2 character
 
-str_to_upper   PROC
-	PUSH {R2}
-	
+str_to_upper   PROC	
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
 	BEQ Ret_up
@@ -317,7 +310,7 @@ For_up
 	SUB R1, R1, #1
 	
 	CMP R1, #-1			; Return 0 if at start of string
-	MOVLT R0, #-1
+	MOVLT R0, #0
 	BLT Ret_up
 	
 	CMP R2, #97			; Is this a lowercase letter?
@@ -332,7 +325,6 @@ For_up
 	B For_up
 	
 Ret_up
-	POP {R2}
     BX  LR
     ENDP
 
@@ -358,9 +350,7 @@ Ret_up
 ; R1 character
 ; R2 Length
 
-str_fill   PROC
-	PUSH {R2}
-	
+str_fill   PROC	
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
 	BEQ Ret_f
@@ -381,7 +371,6 @@ For_f
 	B For_f
 	
 Ret_f
-	POP {R2}
     BX  LR
     ENDP
         
@@ -420,7 +409,7 @@ Ret_f
 ; R9 - tmp
 ; R10 - tmp
 str_emphasize   PROC
-	PUSH {R2-R10, R14}
+	PUSH {R4-R10, R14}
 	CMP R0, #0			; Tests if NULL ptr
 	MOVEQ R0, #-1
 	BEQ Ret_emp
@@ -429,14 +418,18 @@ str_emphasize   PROC
 	MOVEQ R0, #-1
 	BEQ Ret_emp
 	
-	MOV R10, R0			; Test if search string is too long
+	MOV R10, R0	; Test if search string is too long
+	PUSH {R1-R3}
 	BL str_length
+	POP {R1-R3}
 	CMP R0, #0
 	BLT	Ret_emp
 	MOV R3, R0
 	
-	MOV R0, R1			; Test if search term is too long
+	MOV R0, R1	; Test if search term is too long
+	PUSH {R1-R3}
 	BL str_length
+	POP {R1-R3}
 	CMP R0, #0
 	BLT	Ret_emp
 	MOV R2, R0
@@ -464,7 +457,9 @@ For_emp
 	
 	ADD R0, R5, R4
 	MOV R9, R2
+	PUSH {R1-R3}
 	BL str_icompare
+	POP {R1-R3}
 	MOV R2, R9
 	
 	CMP R0, #1
@@ -476,7 +471,9 @@ For_emp
 	ADD R0, R5, R4
 	MOV R9, R1
 	MOV R1, R2
+	PUSH {R1-R3}
 	BL str_to_upper
+	POP {R1-R3}
 	MOV R1, R9
 	
 	ADD R4, R4, #1
@@ -485,14 +482,12 @@ Fin_emp
 	MOV R0, R8
 	
 Ret_emp
-	POP {R2-R10, R14}
+	POP {R4-R10, R14}
     BX  LR
     ENDP
-        
-        
+         
     align
-        
-
+       
     END
         
         
