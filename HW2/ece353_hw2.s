@@ -196,13 +196,33 @@ Ret_cmp
     BX  LR
     ENDP
 		
+
+;*****************************************************************************
+; str_icompare
+;
+; Description: Compares to see if two strings contain the same letters.  
+;
+; Parameters
+;   R0           		: The address of the 1st string
+;   R1          		: The address of the 2nd string
+;   R2           		: length of the string (max 1024)
+;
+; Return values:			  Description
+;  -1                         	: Invalid address for src or dest
+;  -2                         	: max. string length exceeded
+;   0                         	: match
+;   1                         	: does not match
+;
+; C Prototype
+;    int32_t str_icompare(char *str_A, char *str_B, uint16_t size)
+;*****************************************************************************
 ;R0 = With
 ;R1 = What
 ;R2 = Length
 ;R3 = Stor1
 ;R4 = Stor2
 ;R5 = tmp
-	
+
 str_icompare   PROC
 	PUSH {R4}
 	
@@ -224,10 +244,10 @@ For_icmp
 	LDRB R4, [R1, R2]
 	SUB R2, R2, #1		; decrement size
 	
-	CMP R3, R4			; 1) Equal
+	CMP R3, R4			; Purely Equal
 	BEQ equal
 	
-	CMP R3, #65		; this is a letter?
+	CMP R3, #65			; this is a letter?
 	BLT Fin_icmp
 	CMP R3, #122
 	BGT Fin_icmp
@@ -239,7 +259,7 @@ For_icmp
 	B Fin_icmp
 	
 next_char
-	CMP R4, #65		; this is a letter?
+	CMP R4, #65			; this the next a letter?
 	BLT Fin_icmp
 	CMP R4, #122
 	BGT Fin_icmp
@@ -251,11 +271,11 @@ next_char
 	B Fin_icmp
 
 test_char
-	ADD	R4, R4, #32
+	ADD	R4, R4, #32		;Check if capital or non-capital
 	CMP R3, R4
 	BEQ equal
 	
-	SUB	R4, R4, #64
+	SUB	R4, R4, #64 	;Check if capital or non-capital
 	CMP R3, R4
 	BEQ equal
 	
@@ -318,7 +338,7 @@ For_up
 	CMP R2, #122
 	BGT For_up
 	
-	SUB R2, R2, #32
+	SUB R2, R2, #32		;Change to uppercase
 	ADD R1, R1, #1
 	STRB R2, [R0, R1]
 	SUB R1, R1, #1
@@ -408,6 +428,7 @@ Ret_f
 ; R8 - Counter
 ; R9 - tmp
 ; R10 - tmp
+
 str_emphasize   PROC
 	PUSH {R4-R10, R14}
 	CMP R0, #0			; Tests if NULL ptr
@@ -418,7 +439,7 @@ str_emphasize   PROC
 	MOVEQ R0, #-1
 	BEQ Ret_emp
 	
-	MOV R10, R0	; Test if search string is too long
+	MOV R10, R0			; Test if search string is too long
 	PUSH {R1-R3}
 	BL str_length
 	POP {R1-R3}
@@ -426,7 +447,7 @@ str_emphasize   PROC
 	BLT	Ret_emp
 	MOV R3, R0
 	
-	MOV R0, R1	; Test if search term is too long
+	MOV R0, R1			; Test if search term is too long
 	PUSH {R1-R3}
 	BL str_length
 	POP {R1-R3}
@@ -443,32 +464,32 @@ str_emphasize   PROC
 	SUB R2, R2, #1		; Don't compare \0
 	SUB R3, R3, #1		; Don't compare \0
 	
-	MOV R4, #0
+	MOV R4, #0			; Setting up loop paramters
 	MOV R5, R0
 	MOV R8, #0
 	
 	; LOOP
 	; Chuckin' Method
 For_emp
-	SUB R9, R3, R2
+	SUB R9, R3, R2		;Check if if loop done
 	SUB R9, R9, R4
 	CMP R9, #0
 	BLT Fin_emp
 	
-	ADD R0, R5, R4
+	ADD R0, R5, R4		;Setup icompare
 	MOV R9, R2
 	PUSH {R1-R3}
-	BL str_icompare
+	BL str_icompare		;Check window with match string
 	POP {R1-R3}
 	MOV R2, R9
 	
-	CMP R0, #1
+	CMP R0, #1			;If not equal loop
 	ADDEQ R4, R4, #1
 	BEQ For_emp
 	
-	ADD R8, R8, #1
+	ADD R8, R8, #1		;Increment count
 	
-	ADD R0, R5, R4
+	ADD R0, R5, R4		;Change window to all uppercase
 	MOV R9, R1
 	MOV R1, R2
 	PUSH {R1-R3}
@@ -476,7 +497,7 @@ For_emp
 	POP {R1-R3}
 	MOV R1, R9
 	
-	ADD R4, R4, #1
+	ADD R4, R4, #1		;Move window
 	B For_emp
 Fin_emp
 	MOV R0, R8

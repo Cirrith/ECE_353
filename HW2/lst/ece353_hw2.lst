@@ -280,393 +280,427 @@ ARM Macro Assembler    Page 5
   196 000000C8 4770            BX               LR
   197 000000CA                 ENDP
   198 000000CA         
-  199 000000CA         ;R0 = With
-  200 000000CA         ;R1 = What
-  201 000000CA         ;R2 = Length
-  202 000000CA         ;R3 = Stor1
-  203 000000CA         ;R4 = Stor2
-  204 000000CA         ;R5 = tmp
-  205 000000CA         
-  206 000000CA         str_icompare
+  199 000000CA         
+  200 000000CA         ;*******************************************************
+                       **********************
+  201 000000CA         ; str_icompare
+  202 000000CA         ;
+  203 000000CA         ; Description: Compares to see if two strings contain th
+                       e same letters.  
+  204 000000CA         ;
+  205 000000CA         ; Parameters
+  206 000000CA         ;   R0             : The address of the 1st string
+  207 000000CA         ;   R1            : The address of the 2nd string
+  208 000000CA         ;   R2             : length of the string (max 1024)
+  209 000000CA         ;
+  210 000000CA         ; Return values:     Description
+  211 000000CA         ;  -1                          : Invalid address for src
+                        or dest
+  212 000000CA         ;  -2                          : max. string length exce
+                       eded
+  213 000000CA         ;   0                          : match
+  214 000000CA         ;   1                          : does not match
+  215 000000CA         ;
+  216 000000CA         ; C Prototype
+  217 000000CA         ;    int32_t str_icompare(char *str_A, char *str_B, uint
+                       16_t size)
+  218 000000CA         ;*******************************************************
+                       **********************
+  219 000000CA         ;R0 = With
+  220 000000CA         ;R1 = What
+  221 000000CA         ;R2 = Length
+  222 000000CA         ;R3 = Stor1
+  223 000000CA         ;R4 = Stor2
+  224 000000CA         ;R5 = tmp
+  225 000000CA         
+  226 000000CA         str_icompare
                                PROC
-  207 000000CA B410            PUSH             {R4}
-  208 000000CC         
-  209 000000CC 2800            CMP              R0, #0      ; Tests if NULL ptr
+  227 000000CA B410            PUSH             {R4}
+  228 000000CC         
+  229 000000CC 2800            CMP              R0, #0      ; Tests if NULL ptr
                                                             
-  210 000000CE BF08 F04F 
+  230 000000CE BF08 F04F 
               30FF             MOVEQ            R0, #-1
-  211 000000D4 D034            BEQ              Ret_icmp
-  212 000000D6         
-  213 000000D6 2900            CMP              R1, #0      ; Tests if NULL ptr
-                                                            
-  214 000000D8 BF08 F04F 
-              30FF             MOVEQ            R0, #-1
-  215 000000DE D02F            BEQ              Ret_icmp
-  216 000000E0         
-  217 000000E0 F5B2 6F80       CMP              R2, #1024   ; Check for max len
-                                                            gth
-  218 000000E4 BFC8 F06F 
-              0001             MOVGT            R0, #-2
-  219 000000EA DC29            BGT              Ret_icmp
-  220 000000EC         
-  221 000000EC F1A2 0201       SUB              R2, R2, #1
-  222 000000F0         For_icmp
-  223 000000F0 5C83            LDRB             R3, [R0, R2] ; Load characters
-  224 000000F2 5C8C            LDRB             R4, [R1, R2]
-  225 000000F4 F1A2 0201       SUB              R2, R2, #1  ; decrement size
-  226 000000F8         
-  227 000000F8 42A3            CMP              R3, R4      ; 1) Equal
-  228 000000FA D01A            BEQ              equal
-  229 000000FC         
-  230 000000FC 2B41            CMP              R3, #65     ; this is a letter?
-                                                            
-  231 000000FE DB1D            BLT              Fin_icmp
-  232 00000100 2B7A            CMP              R3, #122
-  233 00000102 DC1B            BGT              Fin_icmp
+  231 000000D4 D034            BEQ              Ret_icmp
+  232 000000D6         
 
 
 
 ARM Macro Assembler    Page 6 
 
 
-  234 00000104         
-  235 00000104 2B5A            CMP              R3, #90
-  236 00000106 DD02            BLE              next_char
-  237 00000108 2B61            CMP              R3, #97
-  238 0000010A DA00            BGE              next_char
-  239 0000010C E016            B                Fin_icmp
-  240 0000010E         
-  241 0000010E         next_char
-  242 0000010E 2C41            CMP              R4, #65     ; this is a letter?
+  233 000000D6 2900            CMP              R1, #0      ; Tests if NULL ptr
                                                             
-  243 00000110 DB14            BLT              Fin_icmp
-  244 00000112 2C7A            CMP              R4, #122
-  245 00000114 DC12            BGT              Fin_icmp
-  246 00000116         
-  247 00000116 2C5A            CMP              R4, #90
-  248 00000118 DD02            BLE              test_char
-  249 0000011A 2C61            CMP              R4, #97
-  250 0000011C DA00            BGE              test_char
-  251 0000011E E00D            B                Fin_icmp
-  252 00000120         
-  253 00000120         test_char
-  254 00000120 F104 0420       ADD              R4, R4, #32
-  255 00000124 42A3            CMP              R3, R4
-  256 00000126 D004            BEQ              equal
-  257 00000128         
-  258 00000128 F1A4 0440       SUB              R4, R4, #64
-  259 0000012C 42A3            CMP              R3, R4
-  260 0000012E D000            BEQ              equal
-  261 00000130         
-  262 00000130 E004            B                Fin_icmp
-  263 00000132         
-  264 00000132         equal
-  265 00000132 2A00            CMP              R2, #0      ; Return match
-  266 00000134 BF08 2000       MOVEQ            R0, #0
-  267 00000138 D002            BEQ              Ret_icmp
-  268 0000013A E7D9            B                For_icmp
-  269 0000013C         Fin_icmp
-  270 0000013C F04F 0001       MOV              R0, #1      ; Return not match
-  271 00000140         
-  272 00000140         Ret_icmp
-  273 00000140 BC10            POP              {R4}
-  274 00000142 4770            BX               LR
-  275 00000144                 ENDP
-  276 00000144         
-  277 00000144         ;*******************************************************
-                       **********************
-  278 00000144         ; str_to_upper
-  279 00000144         ;
-  280 00000144         ; Description: All alphabetic characters are converted t
-                       o upper case.
-  281 00000144         ;
-  282 00000144         ; Parameters
-  283 00000144         ;  1st Param                    : Address of string bein
-                       g converted to upper case
-  284 00000144         ;  2nd Param                    : length of the string (
-                       max 1024)
-  285 00000144         ;
-  286 00000144         ; Return values:    Description
-  287 00000144         ;  -1                           : Invalid address for sr
+  234 000000D8 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  235 000000DE D02F            BEQ              Ret_icmp
+  236 000000E0         
+  237 000000E0 F5B2 6F80       CMP              R2, #1024   ; Check for max len
+                                                            gth
+  238 000000E4 BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  239 000000EA DC29            BGT              Ret_icmp
+  240 000000EC         
+  241 000000EC F1A2 0201       SUB              R2, R2, #1
+  242 000000F0         For_icmp
+  243 000000F0 5C83            LDRB             R3, [R0, R2] ; Load characters
+  244 000000F2 5C8C            LDRB             R4, [R1, R2]
+  245 000000F4 F1A2 0201       SUB              R2, R2, #1  ; decrement size
+  246 000000F8         
+  247 000000F8 42A3            CMP              R3, R4      ; Purely Equal
+  248 000000FA D01A            BEQ              equal
+  249 000000FC         
+  250 000000FC 2B41            CMP              R3, #65     ; this is a letter?
+                                                            
+  251 000000FE DB1D            BLT              Fin_icmp
+  252 00000100 2B7A            CMP              R3, #122
+  253 00000102 DC1B            BGT              Fin_icmp
+  254 00000104         
+  255 00000104 2B5A            CMP              R3, #90
+  256 00000106 DD02            BLE              next_char
+  257 00000108 2B61            CMP              R3, #97
+  258 0000010A DA00            BGE              next_char
+  259 0000010C E016            B                Fin_icmp
+  260 0000010E         
+  261 0000010E         next_char
+  262 0000010E 2C41            CMP              R4, #65     ; this the next a l
+                                                            etter?
+  263 00000110 DB14            BLT              Fin_icmp
+  264 00000112 2C7A            CMP              R4, #122
+  265 00000114 DC12            BGT              Fin_icmp
+  266 00000116         
+  267 00000116 2C5A            CMP              R4, #90
+  268 00000118 DD02            BLE              test_char
+  269 0000011A 2C61            CMP              R4, #97
+  270 0000011C DA00            BGE              test_char
+  271 0000011E E00D            B                Fin_icmp
+  272 00000120         
+  273 00000120         test_char
+  274 00000120 F104 0420       ADD              R4, R4, #32 ;Check if capital o
+                                                            r non-capital
+  275 00000124 42A3            CMP              R3, R4
+  276 00000126 D004            BEQ              equal
+  277 00000128         
+  278 00000128 F1A4 0440       SUB              R4, R4, #64 ;Check if capital o
+                                                            r non-capital
+  279 0000012C 42A3            CMP              R3, R4
+  280 0000012E D000            BEQ              equal
+  281 00000130         
+  282 00000130 E004            B                Fin_icmp
+  283 00000132         
 
 
 
 ARM Macro Assembler    Page 7 
 
 
+  284 00000132         equal
+  285 00000132 2A00            CMP              R2, #0      ; Return match
+  286 00000134 BF08 2000       MOVEQ            R0, #0
+  287 00000138 D002            BEQ              Ret_icmp
+  288 0000013A E7D9            B                For_icmp
+  289 0000013C         Fin_icmp
+  290 0000013C F04F 0001       MOV              R0, #1      ; Return not match
+  291 00000140         
+  292 00000140         Ret_icmp
+  293 00000140 BC10            POP              {R4}
+  294 00000142 4770            BX               LR
+  295 00000144                 ENDP
+  296 00000144         
+  297 00000144         ;*******************************************************
+                       **********************
+  298 00000144         ; str_to_upper
+  299 00000144         ;
+  300 00000144         ; Description: All alphabetic characters are converted t
+                       o upper case.
+  301 00000144         ;
+  302 00000144         ; Parameters
+  303 00000144         ;  1st Param                    : Address of string bein
+                       g converted to upper case
+  304 00000144         ;  2nd Param                    : length of the string (
+                       max 1024)
+  305 00000144         ;
+  306 00000144         ; Return values:    Description
+  307 00000144         ;  -1                           : Invalid address for sr
                        c or dest
-  288 00000144         ;  -2                           : max. string length exc
+  308 00000144         ;  -2                           : max. string length exc
                        eeded
-  289 00000144         ;   0                           : success
-  290 00000144         ; C Prototype
-  291 00000144         ; int32_t str_to_upper(char *str, uint16_t size)
-  292 00000144         ;*******************************************************
+  309 00000144         ;   0                           : success
+  310 00000144         ; C Prototype
+  311 00000144         ; int32_t str_to_upper(char *str, uint16_t size)
+  312 00000144         ;*******************************************************
                        **********************
-  293 00000144         
-  294 00000144         ; R0 String
-  295 00000144         ; R1 Length
-  296 00000144         ; R2 character
-  297 00000144         
-  298 00000144         str_to_upper
+  313 00000144         
+  314 00000144         ; R0 String
+  315 00000144         ; R1 Length
+  316 00000144         ; R2 character
+  317 00000144         
+  318 00000144         str_to_upper
                                PROC
-  299 00000144 2800            CMP              R0, #0      ; Tests if NULL ptr
+  319 00000144 2800            CMP              R0, #0      ; Tests if NULL ptr
                                                             
-  300 00000146 BF08 F04F 
+  320 00000146 BF08 F04F 
               30FF             MOVEQ            R0, #-1
-  301 0000014C D01B            BEQ              Ret_up
-  302 0000014E         
-  303 0000014E F5B1 6F80       CMP              R1, #1024   ; Check for max len
+  321 0000014C D01B            BEQ              Ret_up
+  322 0000014E         
+  323 0000014E F5B1 6F80       CMP              R1, #1024   ; Check for max len
                                                             gth
-  304 00000152 BFC8 F06F 
+  324 00000152 BFC8 F06F 
               0001             MOVGT            R0, #-2
-  305 00000158 DC15            BGT              Ret_up
-  306 0000015A         
-  307 0000015A F1A1 0101       SUB              R1, R1, #1  ; Don't touch \0
-  308 0000015E         For_up
-  309 0000015E 5C42            LDRB             R2, [R0, R1] ; Load character
-  310 00000160 F1A1 0101       SUB              R1, R1, #1
-  311 00000164         
-  312 00000164 F1B1 3FFF       CMP              R1, #-1     ; Return 0 if at st
-                                                            art of string
-  313 00000168 BFB8 2000       MOVLT            R0, #0
-  314 0000016C DB0B            BLT              Ret_up
-  315 0000016E         
-  316 0000016E 2A61            CMP              R2, #97     ; Is this a lowerca
-                                                            se letter?
-  317 00000170 DBF5            BLT              For_up
-  318 00000172 2A7A            CMP              R2, #122
-  319 00000174 DCF3            BGT              For_up
-  320 00000176         
-  321 00000176 F1A2 0220       SUB              R2, R2, #32
-  322 0000017A F101 0101       ADD              R1, R1, #1
-  323 0000017E 5442            STRB             R2, [R0, R1]
-  324 00000180 F1A1 0101       SUB              R1, R1, #1
-  325 00000184 E7EB            B                For_up
-  326 00000186         
-  327 00000186         Ret_up
-  328 00000186 4770            BX               LR
-  329 00000188                 ENDP
-  330 00000188         
-  331 00000188         ;*******************************************************
-                       **********************
-  332 00000188         ; str_fill
-  333 00000188         ;
-  334 00000188         ; Description: Fills an entire string with a given value
-                       
+  325 00000158 DC15            BGT              Ret_up
+  326 0000015A         
+  327 0000015A F1A1 0101       SUB              R1, R1, #1  ; Don't touch \0
+  328 0000015E         For_up
+  329 0000015E 5C42            LDRB             R2, [R0, R1] ; Load character
+  330 00000160 F1A1 0101       SUB              R1, R1, #1
 
 
 
 ARM Macro Assembler    Page 8 
 
 
-  335 00000188         ;
-  336 00000188         ; Parameters
-  337 00000188         ;  1st Param                : The address of the string 
-                       
-  338 00000188         ;  2nd Param                : value to write into the st
-                       ring
-  339 00000188         ;  3rd Param                : length of the string (max 
-                       of 1024)
-  340 00000188         ;
-  341 00000188         ; Return values:             Description
-  342 00000188         ;  -1                        : Invalid address for src o
-                       r dest
-  343 00000188         ;  -2                        : max. string length exceed
-                       ed
-  344 00000188         ;   0                        : success
-  345 00000188         ;
-  346 00000188         ; C Prototpye
-  347 00000188         ;    int32_t str_fill(char *str, char value, uint16_t si
-                       ze)
-  348 00000188         ;*******************************************************
-                       **********************
-  349 00000188         ; R0 String
-  350 00000188         ; R1 character
-  351 00000188         ; R2 Length
-  352 00000188         
-  353 00000188         str_fill
-                               PROC
-  354 00000188 2800            CMP              R0, #0      ; Tests if NULL ptr
-                                                            
-  355 0000018A BF08 F04F 
-              30FF             MOVEQ            R0, #-1
-  356 00000190 D00F            BEQ              Ret_f
-  357 00000192         
-  358 00000192 F5B2 6F80       CMP              R2, #1024   ; Check for max len
-                                                            gth
-  359 00000196 BFC8 F06F 
-              0001             MOVGT            R0, #-2
-  360 0000019C DC09            BGT              Ret_f
-  361 0000019E         
-  362 0000019E F1A2 0201       SUB              R2, R2, #1  ; Don't touch \0
-  363 000001A2         For_f
-  364 000001A2 F1A2 0201       SUB              R2, R2, #1
-  365 000001A6         
-  366 000001A6 2A00            CMP              R2, #0      ; Return 0 if at st
+  331 00000164         
+  332 00000164 F1B1 3FFF       CMP              R1, #-1     ; Return 0 if at st
                                                             art of string
-  367 000001A8 BFB8 2000       MOVLT            R0, #0
-  368 000001AC DB01            BLT              Ret_f
-  369 000001AE         
-  370 000001AE 5481            STRB             R1, [R0, R2]
-  371 000001B0 E7F7            B                For_f
-  372 000001B2         
-  373 000001B2         Ret_f
-  374 000001B2 4770            BX               LR
-  375 000001B4                 ENDP
-  376 000001B4         
-  377 000001B4         ;*******************************************************
+  333 00000168 BFB8 2000       MOVLT            R0, #0
+  334 0000016C DB0B            BLT              Ret_up
+  335 0000016E         
+  336 0000016E 2A61            CMP              R2, #97     ; Is this a lowerca
+                                                            se letter?
+  337 00000170 DBF5            BLT              For_up
+  338 00000172 2A7A            CMP              R2, #122
+  339 00000174 DCF3            BGT              For_up
+  340 00000176         
+  341 00000176 F1A2 0220       SUB              R2, R2, #32 ;Change to uppercas
+                                                            e
+  342 0000017A F101 0101       ADD              R1, R1, #1
+  343 0000017E 5442            STRB             R2, [R0, R1]
+  344 00000180 F1A1 0101       SUB              R1, R1, #1
+  345 00000184 E7EB            B                For_up
+  346 00000186         
+  347 00000186         Ret_up
+  348 00000186 4770            BX               LR
+  349 00000188                 ENDP
+  350 00000188         
+  351 00000188         ;*******************************************************
                        **********************
-  378 000001B4         ; str_emphasize
-  379 000001B4         ;
+  352 00000188         ; str_fill
+  353 00000188         ;
+  354 00000188         ; Description: Fills an entire string with a given value
+                       
+  355 00000188         ;
+  356 00000188         ; Parameters
+  357 00000188         ;  1st Param                : The address of the string 
+                       
+  358 00000188         ;  2nd Param                : value to write into the st
+                       ring
+  359 00000188         ;  3rd Param                : length of the string (max 
+                       of 1024)
+  360 00000188         ;
+  361 00000188         ; Return values:             Description
+  362 00000188         ;  -1                        : Invalid address for src o
+                       r dest
+  363 00000188         ;  -2                        : max. string length exceed
+                       ed
+  364 00000188         ;   0                        : success
+  365 00000188         ;
+  366 00000188         ; C Prototpye
+  367 00000188         ;    int32_t str_fill(char *str, char value, uint16_t si
+                       ze)
+  368 00000188         ;*******************************************************
+                       **********************
+  369 00000188         ; R0 String
+  370 00000188         ; R1 character
+  371 00000188         ; R2 Length
+  372 00000188         
+  373 00000188         str_fill
+                               PROC
+  374 00000188 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  375 0000018A BF08 F04F 
 
 
 
 ARM Macro Assembler    Page 9 
 
 
-  380 000001B4         ; Description: Performs a case insensitive search for a 
-                       substring in text.  
-  381 000001B4         ; Any substrings that will be found will be converted to
-                        UPPERCASE.  The 
-  382 000001B4         ; function will return how many occurrances of the subst
-                       ring were found
-  383 000001B4         ;
-  384 000001B4         ;    Parameters
-  385 000001B4         ;    1st Param           : The address of the text strin
-                       g that will be searched.  
-  386 000001B4         ;                        : The maximum length of this st
-                       ring is 1024 characters
-  387 000001B4         ;
-  388 000001B4         ;  2nd Param           : The address of the sub-string i
-                       n 'text' that will be 
-  389 000001B4         ;                        : emphasized.  The maximum leng
-                       th of the search text is
-  390 000001B4         ;                        : 1024 characters.
-  391 000001B4         ;
-  392 000001B4         ; Return values:
-  393 000001B4         ;  -1                        : Invalid address for src o
-                       r dest
-  394 000001B4         ;  -2                        : max. string length exceed
-                       ed
-  395 000001B4         ;                            : The function will return 
-                       how many occurrances of the 
-  396 000001B4         ;                            : substring were found
-  397 000001B4         ; C Prototype
-  398 000001B4         ;    int32_t str_emphasize(char *text, char *search)
-  399 000001B4         ;*******************************************************
+              30FF             MOVEQ            R0, #-1
+  376 00000190 D00F            BEQ              Ret_f
+  377 00000192         
+  378 00000192 F5B2 6F80       CMP              R2, #1024   ; Check for max len
+                                                            gth
+  379 00000196 BFC8 F06F 
+              0001             MOVGT            R0, #-2
+  380 0000019C DC09            BGT              Ret_f
+  381 0000019E         
+  382 0000019E F1A2 0201       SUB              R2, R2, #1  ; Don't touch \0
+  383 000001A2         For_f
+  384 000001A2 F1A2 0201       SUB              R2, R2, #1
+  385 000001A6         
+  386 000001A6 2A00            CMP              R2, #0      ; Return 0 if at st
+                                                            art of string
+  387 000001A8 BFB8 2000       MOVLT            R0, #0
+  388 000001AC DB01            BLT              Ret_f
+  389 000001AE         
+  390 000001AE 5481            STRB             R1, [R0, R2]
+  391 000001B0 E7F7            B                For_f
+  392 000001B2         
+  393 000001B2         Ret_f
+  394 000001B2 4770            BX               LR
+  395 000001B4                 ENDP
+  396 000001B4         
+  397 000001B4         ;*******************************************************
                        **********************
-  400 000001B4         ; R0 - string to be searched
-  401 000001B4         ; R1 - search term
-  402 000001B4         ; R2 - length of term
-  403 000001B4         ; R3 - length of string
-  404 000001B4         ; R4 - index of search string current char
-  405 000001B4         ; R5 - R0 base
-  406 000001B4         ; R6 - current char of search string
-  407 000001B4         ; R7 - current char of search search term
-  408 000001B4         ; R8 - Counter
-  409 000001B4         ; R9 - tmp
-  410 000001B4         ; R10 - tmp
-  411 000001B4         str_emphasize
-                               PROC
-  412 000001B4 E92D 47F0       PUSH             {R4-R10, R14}
-  413 000001B8 2800            CMP              R0, #0      ; Tests if NULL ptr
-                                                            
-  414 000001BA BF08 F04F 
-              30FF             MOVEQ            R0, #-1
-  415 000001C0 D044            BEQ              Ret_emp
-  416 000001C2         
-  417 000001C2 2900            CMP              R1, #0      ; Tests if NULL ptr
-                                                            
-  418 000001C4 BF08 F04F 
-              30FF             MOVEQ            R0, #-1
-  419 000001CA D03F            BEQ              Ret_emp
-  420 000001CC         
-  421 000001CC 4682            MOV              R10, R0     ; Test if search st
-                                                            ring is too long
+  398 000001B4         ; str_emphasize
+  399 000001B4         ;
+  400 000001B4         ; Description: Performs a case insensitive search for a 
+                       substring in text.  
+  401 000001B4         ; Any substrings that will be found will be converted to
+                        UPPERCASE.  The 
+  402 000001B4         ; function will return how many occurrances of the subst
+                       ring were found
+  403 000001B4         ;
+  404 000001B4         ;    Parameters
+  405 000001B4         ;    1st Param           : The address of the text strin
+                       g that will be searched.  
+  406 000001B4         ;                        : The maximum length of this st
+                       ring is 1024 characters
+  407 000001B4         ;
+  408 000001B4         ;  2nd Param           : The address of the sub-string i
+                       n 'text' that will be 
+  409 000001B4         ;                        : emphasized.  The maximum leng
+                       th of the search text is
+  410 000001B4         ;                        : 1024 characters.
+  411 000001B4         ;
+  412 000001B4         ; Return values:
+  413 000001B4         ;  -1                        : Invalid address for src o
+                       r dest
+  414 000001B4         ;  -2                        : max. string length exceed
+                       ed
+  415 000001B4         ;                            : The function will return 
+                       how many occurrances of the 
+  416 000001B4         ;                            : substring were found
+  417 000001B4         ; C Prototype
+  418 000001B4         ;    int32_t str_emphasize(char *text, char *search)
+  419 000001B4         ;*******************************************************
 
 
 
 ARM Macro Assembler    Page 10 
 
 
-  422 000001CE B40E            PUSH             {R1-R3}
-  423 000001D0 F7FF FFFE       BL               str_length
-  424 000001D4 BC0E            POP              {R1-R3}
-  425 000001D6 2800            CMP              R0, #0
-  426 000001D8 DB38            BLT              Ret_emp
-  427 000001DA 4603            MOV              R3, R0
-  428 000001DC         
-  429 000001DC 4608            MOV              R0, R1      ; Test if search te
+                       **********************
+  420 000001B4         ; R0 - string to be searched
+  421 000001B4         ; R1 - search term
+  422 000001B4         ; R2 - length of term
+  423 000001B4         ; R3 - length of string
+  424 000001B4         ; R4 - index of search string current char
+  425 000001B4         ; R5 - R0 base
+  426 000001B4         ; R6 - current char of search string
+  427 000001B4         ; R7 - current char of search search term
+  428 000001B4         ; R8 - Counter
+  429 000001B4         ; R9 - tmp
+  430 000001B4         ; R10 - tmp
+  431 000001B4         
+  432 000001B4         str_emphasize
+                               PROC
+  433 000001B4 E92D 47F0       PUSH             {R4-R10, R14}
+  434 000001B8 2800            CMP              R0, #0      ; Tests if NULL ptr
+                                                            
+  435 000001BA BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  436 000001C0 D044            BEQ              Ret_emp
+  437 000001C2         
+  438 000001C2 2900            CMP              R1, #0      ; Tests if NULL ptr
+                                                            
+  439 000001C4 BF08 F04F 
+              30FF             MOVEQ            R0, #-1
+  440 000001CA D03F            BEQ              Ret_emp
+  441 000001CC         
+  442 000001CC 4682            MOV              R10, R0     ; Test if search st
+                                                            ring is too long
+  443 000001CE B40E            PUSH             {R1-R3}
+  444 000001D0 F7FF FFFE       BL               str_length
+  445 000001D4 BC0E            POP              {R1-R3}
+  446 000001D6 2800            CMP              R0, #0
+  447 000001D8 DB38            BLT              Ret_emp
+  448 000001DA 4603            MOV              R3, R0
+  449 000001DC         
+  450 000001DC 4608            MOV              R0, R1      ; Test if search te
                                                             rm is too long
-  430 000001DE B40E            PUSH             {R1-R3}
-  431 000001E0 F7FF FFFE       BL               str_length
-  432 000001E4 BC0E            POP              {R1-R3}
-  433 000001E6 2800            CMP              R0, #0
-  434 000001E8 DB30            BLT              Ret_emp
-  435 000001EA 4602            MOV              R2, R0
-  436 000001EC         
-  437 000001EC 4650            MOV              R0, R10     ; Return R0
-  438 000001EE         
-  439 000001EE 429A            CMP              R2, R3      ; Give up if term >
+  451 000001DE B40E            PUSH             {R1-R3}
+  452 000001E0 F7FF FFFE       BL               str_length
+  453 000001E4 BC0E            POP              {R1-R3}
+  454 000001E6 2800            CMP              R0, #0
+  455 000001E8 DB30            BLT              Ret_emp
+  456 000001EA 4602            MOV              R2, R0
+  457 000001EC         
+  458 000001EC 4650            MOV              R0, R10     ; Return R0
+  459 000001EE         
+  460 000001EE 429A            CMP              R2, R3      ; Give up if term >
                                                              string
-  440 000001F0 BFC8 2000       MOVGT            R0, #0
-  441 000001F4 DC2A            BGT              Ret_emp
-  442 000001F6         
-  443 000001F6 F1A2 0201       SUB              R2, R2, #1  ; Don't compare \0
-  444 000001FA F1A3 0301       SUB              R3, R3, #1  ; Don't compare \0
-  445 000001FE         
-  446 000001FE F04F 0400       MOV              R4, #0
-  447 00000202 4605            MOV              R5, R0
-  448 00000204 F04F 0800       MOV              R8, #0
-  449 00000208         
-  450 00000208         ; LOOP
-  451 00000208         ; Chuckin' Method
-  452 00000208         For_emp
-  453 00000208 EBA3 0902       SUB              R9, R3, R2
-  454 0000020C EBA9 0904       SUB              R9, R9, R4
-  455 00000210 F1B9 0F00       CMP              R9, #0
-  456 00000214 DB19            BLT              Fin_emp
-  457 00000216         
-  458 00000216 EB05 0004       ADD              R0, R5, R4
-  459 0000021A 4691            MOV              R9, R2
-  460 0000021C B40E            PUSH             {R1-R3}
-  461 0000021E F7FF FFFE       BL               str_icompare
-  462 00000222 BC0E            POP              {R1-R3}
-  463 00000224 464A            MOV              R2, R9
-  464 00000226         
-  465 00000226 2801            CMP              R0, #1
-  466 00000228 BF08 1C64       ADDEQ            R4, R4, #1
-  467 0000022C D0EC            BEQ              For_emp
-  468 0000022E         
-  469 0000022E F108 0801       ADD              R8, R8, #1
-  470 00000232         
-  471 00000232 EB05 0004       ADD              R0, R5, R4
-  472 00000236 4689            MOV              R9, R1
-  473 00000238 4611            MOV              R1, R2
-  474 0000023A B40E            PUSH             {R1-R3}
-  475 0000023C F7FF FFFE       BL               str_to_upper
-  476 00000240 BC0E            POP              {R1-R3}
-  477 00000242 4649            MOV              R1, R9
-  478 00000244         
+  461 000001F0 BFC8 2000       MOVGT            R0, #0
+  462 000001F4 DC2A            BGT              Ret_emp
+  463 000001F6         
+  464 000001F6 F1A2 0201       SUB              R2, R2, #1  ; Don't compare \0
+  465 000001FA F1A3 0301       SUB              R3, R3, #1  ; Don't compare \0
+  466 000001FE         
+  467 000001FE F04F 0400       MOV              R4, #0      ; Setting up loop p
+                                                            aramters
+  468 00000202 4605            MOV              R5, R0
 
 
 
 ARM Macro Assembler    Page 11 
 
 
-  479 00000244 F104 0401       ADD              R4, R4, #1
-  480 00000248 E7DE            B                For_emp
-  481 0000024A         Fin_emp
-  482 0000024A 4640            MOV              R0, R8
-  483 0000024C         
-  484 0000024C         Ret_emp
-  485 0000024C E8BD 47F0       POP              {R4-R10, R14}
-  486 00000250 4770            BX               LR
-  487 00000252                 ENDP
-  488 00000252         
-  489 00000252 00 00           align
-  490 00000254         
-  491 00000254                 END
+  469 00000204 F04F 0800       MOV              R8, #0
+  470 00000208         
+  471 00000208         ; LOOP
+  472 00000208         ; Chuckin' Method
+  473 00000208         For_emp
+  474 00000208 EBA3 0902       SUB              R9, R3, R2  ;Check if if loop d
+                                                            one
+  475 0000020C EBA9 0904       SUB              R9, R9, R4
+  476 00000210 F1B9 0F00       CMP              R9, #0
+  477 00000214 DB19            BLT              Fin_emp
+  478 00000216         
+  479 00000216 EB05 0004       ADD              R0, R5, R4  ;Setup icompare
+  480 0000021A 4691            MOV              R9, R2
+  481 0000021C B40E            PUSH             {R1-R3}
+  482 0000021E F7FF FFFE       BL               str_icompare ;Check window with
+                                                             match string
+  483 00000222 BC0E            POP              {R1-R3}
+  484 00000224 464A            MOV              R2, R9
+  485 00000226         
+  486 00000226 2801            CMP              R0, #1      ;If not equal loop
+  487 00000228 BF08 1C64       ADDEQ            R4, R4, #1
+  488 0000022C D0EC            BEQ              For_emp
+  489 0000022E         
+  490 0000022E F108 0801       ADD              R8, R8, #1  ;Increment count
+  491 00000232         
+  492 00000232 EB05 0004       ADD              R0, R5, R4  ;Change window to a
+                                                            ll uppercase
+  493 00000236 4689            MOV              R9, R1
+  494 00000238 4611            MOV              R1, R2
+  495 0000023A B40E            PUSH             {R1-R3}
+  496 0000023C F7FF FFFE       BL               str_to_upper
+  497 00000240 BC0E            POP              {R1-R3}
+  498 00000242 4649            MOV              R1, R9
+  499 00000244         
+  500 00000244 F104 0401       ADD              R4, R4, #1  ;Move window
+  501 00000248 E7DE            B                For_emp
+  502 0000024A         Fin_emp
+  503 0000024A 4640            MOV              R0, R8
+  504 0000024C         
+  505 0000024C         Ret_emp
+  506 0000024C E8BD 47F0       POP              {R4-R10, R14}
+  507 00000250 4770            BX               LR
+  508 00000252                 ENDP
+  509 00000252         
+  510 00000252 00 00           align
+  511 00000254         
+  512 00000254                 END
 Command Line: --debug --xref --cpu=Cortex-M4.fp --apcs=interwork --depend=.\obj
 \ece353_hw2.d -o.\obj\ece353_hw2.o -II:\College\ECE_353\HW2\RTE -IC:\AppV\mdk_5
 10\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include -IC:\AppV\mdk_510\ARM\PACK\Keil\TM4C_
@@ -713,23 +747,23 @@ Fin_emp 0000024A
 
 Symbol: Fin_emp
    Definitions
-      At line 481 in file ece353_hw2.s
+      At line 502 in file ece353_hw2.s
    Uses
-      At line 456 in file ece353_hw2.s
+      At line 477 in file ece353_hw2.s
 Comment: Fin_emp used once
 Fin_icmp 0000013C
 
 Symbol: Fin_icmp
    Definitions
-      At line 269 in file ece353_hw2.s
+      At line 289 in file ece353_hw2.s
    Uses
-      At line 231 in file ece353_hw2.s
-      At line 233 in file ece353_hw2.s
-      At line 239 in file ece353_hw2.s
-      At line 243 in file ece353_hw2.s
-      At line 245 in file ece353_hw2.s
       At line 251 in file ece353_hw2.s
-      At line 262 in file ece353_hw2.s
+      At line 253 in file ece353_hw2.s
+      At line 259 in file ece353_hw2.s
+      At line 263 in file ece353_hw2.s
+      At line 265 in file ece353_hw2.s
+      At line 271 in file ece353_hw2.s
+      At line 282 in file ece353_hw2.s
 
 For_c 00000074
 
@@ -751,7 +785,7 @@ For_emp 00000208
 
 Symbol: For_emp
    Definitions
-      At line 452 in file ece353_hw2.s
+      At line 473 in file ece353_hw2.s
 
 
 
@@ -759,34 +793,34 @@ ARM Macro Assembler    Page 2 Alphabetic symbol ordering
 Relocatable symbols
 
    Uses
-      At line 467 in file ece353_hw2.s
-      At line 480 in file ece353_hw2.s
+      At line 488 in file ece353_hw2.s
+      At line 501 in file ece353_hw2.s
 
 For_f 000001A2
 
 Symbol: For_f
    Definitions
-      At line 363 in file ece353_hw2.s
+      At line 383 in file ece353_hw2.s
    Uses
-      At line 371 in file ece353_hw2.s
+      At line 391 in file ece353_hw2.s
 Comment: For_f used once
 For_icmp 000000F0
 
 Symbol: For_icmp
    Definitions
-      At line 222 in file ece353_hw2.s
+      At line 242 in file ece353_hw2.s
    Uses
-      At line 268 in file ece353_hw2.s
+      At line 288 in file ece353_hw2.s
 Comment: For_icmp used once
 For_up 0000015E
 
 Symbol: For_up
    Definitions
-      At line 308 in file ece353_hw2.s
+      At line 328 in file ece353_hw2.s
    Uses
-      At line 317 in file ece353_hw2.s
-      At line 319 in file ece353_hw2.s
-      At line 325 in file ece353_hw2.s
+      At line 337 in file ece353_hw2.s
+      At line 339 in file ece353_hw2.s
+      At line 345 in file ece353_hw2.s
 
 PERSON1 00000007
 
@@ -835,34 +869,34 @@ Ret_emp 0000024C
 
 Symbol: Ret_emp
    Definitions
-      At line 484 in file ece353_hw2.s
+      At line 505 in file ece353_hw2.s
    Uses
-      At line 415 in file ece353_hw2.s
-      At line 419 in file ece353_hw2.s
-      At line 426 in file ece353_hw2.s
-      At line 434 in file ece353_hw2.s
-      At line 441 in file ece353_hw2.s
+      At line 436 in file ece353_hw2.s
+      At line 440 in file ece353_hw2.s
+      At line 447 in file ece353_hw2.s
+      At line 455 in file ece353_hw2.s
+      At line 462 in file ece353_hw2.s
 
 Ret_f 000001B2
 
 Symbol: Ret_f
    Definitions
-      At line 373 in file ece353_hw2.s
+      At line 393 in file ece353_hw2.s
    Uses
-      At line 356 in file ece353_hw2.s
-      At line 360 in file ece353_hw2.s
-      At line 368 in file ece353_hw2.s
+      At line 376 in file ece353_hw2.s
+      At line 380 in file ece353_hw2.s
+      At line 388 in file ece353_hw2.s
 
 Ret_icmp 00000140
 
 Symbol: Ret_icmp
    Definitions
-      At line 272 in file ece353_hw2.s
+      At line 292 in file ece353_hw2.s
    Uses
-      At line 211 in file ece353_hw2.s
-      At line 215 in file ece353_hw2.s
-      At line 219 in file ece353_hw2.s
-      At line 267 in file ece353_hw2.s
+      At line 231 in file ece353_hw2.s
+      At line 235 in file ece353_hw2.s
+      At line 239 in file ece353_hw2.s
+      At line 287 in file ece353_hw2.s
 
 Ret_l 00000052
 
@@ -878,17 +912,17 @@ Ret_up 00000186
 
 Symbol: Ret_up
    Definitions
-      At line 327 in file ece353_hw2.s
+      At line 347 in file ece353_hw2.s
    Uses
-      At line 301 in file ece353_hw2.s
-      At line 305 in file ece353_hw2.s
+      At line 321 in file ece353_hw2.s
+      At line 325 in file ece353_hw2.s
 
 
 
 ARM Macro Assembler    Page 4 Alphabetic symbol ordering
 Relocatable symbols
 
-      At line 314 in file ece353_hw2.s
+      At line 334 in file ece353_hw2.s
 
 TEAM 00000000
 
@@ -910,20 +944,20 @@ equal 00000132
 
 Symbol: equal
    Definitions
-      At line 264 in file ece353_hw2.s
+      At line 284 in file ece353_hw2.s
    Uses
-      At line 228 in file ece353_hw2.s
-      At line 256 in file ece353_hw2.s
-      At line 260 in file ece353_hw2.s
+      At line 248 in file ece353_hw2.s
+      At line 276 in file ece353_hw2.s
+      At line 280 in file ece353_hw2.s
 
 next_char 0000010E
 
 Symbol: next_char
    Definitions
-      At line 241 in file ece353_hw2.s
+      At line 261 in file ece353_hw2.s
    Uses
-      At line 236 in file ece353_hw2.s
-      At line 238 in file ece353_hw2.s
+      At line 256 in file ece353_hw2.s
+      At line 258 in file ece353_hw2.s
 
 str_compare 00000086
 
@@ -945,7 +979,7 @@ str_emphasize 000001B4
 
 Symbol: str_emphasize
    Definitions
-      At line 411 in file ece353_hw2.s
+      At line 432 in file ece353_hw2.s
    Uses
 
 
@@ -959,7 +993,7 @@ str_fill 00000188
 
 Symbol: str_fill
    Definitions
-      At line 353 in file ece353_hw2.s
+      At line 373 in file ece353_hw2.s
    Uses
       At line 15 in file ece353_hw2.s
 Comment: str_fill used once
@@ -967,10 +1001,10 @@ str_icompare 000000CA
 
 Symbol: str_icompare
    Definitions
-      At line 206 in file ece353_hw2.s
+      At line 226 in file ece353_hw2.s
    Uses
       At line 17 in file ece353_hw2.s
-      At line 461 in file ece353_hw2.s
+      At line 482 in file ece353_hw2.s
 
 str_length 00000028
 
@@ -979,26 +1013,26 @@ Symbol: str_length
       At line 64 in file ece353_hw2.s
    Uses
       At line 10 in file ece353_hw2.s
-      At line 423 in file ece353_hw2.s
-      At line 431 in file ece353_hw2.s
+      At line 444 in file ece353_hw2.s
+      At line 452 in file ece353_hw2.s
 
 str_to_upper 00000144
 
 Symbol: str_to_upper
    Definitions
-      At line 298 in file ece353_hw2.s
+      At line 318 in file ece353_hw2.s
    Uses
       At line 14 in file ece353_hw2.s
-      At line 475 in file ece353_hw2.s
+      At line 496 in file ece353_hw2.s
 
 test_char 00000120
 
 Symbol: test_char
    Definitions
-      At line 253 in file ece353_hw2.s
+      At line 273 in file ece353_hw2.s
    Uses
-      At line 248 in file ece353_hw2.s
-      At line 250 in file ece353_hw2.s
+      At line 268 in file ece353_hw2.s
+      At line 270 in file ece353_hw2.s
 
 31 symbols
 365 symbols in table

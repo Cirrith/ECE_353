@@ -1,0 +1,32 @@
+************************************** * ECE353 - Spring 2016 HW2 * Team18 * Ryan Bambrough * Nicholas Adams ************************************** 
+================================== Testing str_len ================================== 
+str_len 1 ... FAILED (-1pts) 
+str_len 2 ... FAILED (-1pts) 
+str_len 3 ... FAILED (-1pts) 
+str_len Max Length ... FAILED (-1pts) 
+str_len NULL pointer ... PASSED
+================================== Testing str_copy ================================== 
+str_copy ... PASSED 
+str_copy Max Length ... PASSED 
+str_copy NULL pointer ... PASSED 
+================================== Testing str_compare ================================== 
+str_compare Same Strings ... PASSED 
+str_compare Different Strings ... FAILED (-1pts) 
+str_compare Max Length ... PASSED 
+str_compare NULL pointer ... PASSED 
+================================== Testing str_to_upper ================================== 
+str_to_upper AbCDefGHij123 ... PASSED 
+str_to_upper ABCDEFGHIJ123 ... PASSED 
+str_to_upper Max Length ... PASSED 
+str_to_upper NULL pointer ... PASSED 
+================================== Testing str_fill ================================== 
+str_fill ... PASSED 
+str_fill Max Length ... PASSED 
+str_fill NULL pointer ... PASSED 
+================================== Testing str_emphasize - Basic ================================== 
+str_emphasize ... PASSED 
+================================== Testing str_emphasize - Instructor ================================== 
+str_emphasize Instructor ... PASSED 
+str_emphasize Instructor return value ... PASSED 
+str_emphasize NULL pointer 1 ... PASSED 
+str_emphasize NULL pointer 2 ... PASSED
