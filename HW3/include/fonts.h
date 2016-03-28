@@ -20,45 +20,13 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef __ADC_H__
-#define __ADC_H__
+#ifndef __FONTS_H__
+#define __FONTS_H__
 
 #include <stdint.h>
-#include <stdbool.h>
-#include "TM4C123GH6PM.h"
-#include "driver_defines.h"
 
-#define   PS2_ADC_BASE     ADC0_BASE
-
-#define		COMP_HIGH				3071 << 16
-#define		COMP_LOW				1023
-
-/******************************************************************************
- * Initializes ADC to use Sample Sequencer #3, triggered by software, no IRQs
- *
- * Parameters:
- *  adc_base - The user must pass ADC0_BASE or ADC1_BASE.
- *
- * Returns:
- *  true  - if an valid base address was passed in
- *  false - if an invalid base address was passed in
- *****************************************************************************/
-bool initializeADC(  uint32_t adc_base );
-
-
-/******************************************************************************
- * Returns the analog reading for a given AIN channel.
- *
- * Parameters:
- *  adc_base - The user must pass ADC0_BASE or ADC1_BASE.
- *  channel  - Which channel to convert
- *
- * Returns:
- *   analog reading
- *****************************************************************************/
-uint32_t getADCValue( uint32_t adc_base, uint8_t channel);
-
-
-void hw3_adc_init(void);
-
+extern const uint8_t arialNarrow_8ptBitmaps[];
+extern const uint8_t courierNew_10ptBitmaps[];
+extern const uint8_t buckyBadger[];
+extern const uint8_t motionW[];
 #endif

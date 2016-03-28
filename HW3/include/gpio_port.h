@@ -3,6 +3,23 @@
 
 #include "driver_defines.h"
 
+#define   PS2_GPIO_BASE    	GPIOE_BASE
+#define		PBU_GPIO_BASE			GPIOF_BASE
+
+#define   PS2_X_PIN_NUM      (1 << 2)
+#define   PS2_Y_PIN_NUM      (1 << 3)
+
+#define		UP_PIN							(1 << 1)
+#define		RIGHT_PIN						(1 << 2)
+#define		LEFT_PIN						(1 << 3)
+
+#define   PS2_X_DIR_MASK     (1 << PS2_X_PIN_NUM)
+#define   PS2_Y_DIR_MASK     (1 << PS2_Y_PIN_NUM)
+
+
+
+#define   PS2_X_ADC_CHANNEL  1
+#define   PS2_Y_ADC_CHANNEL  0
 //*****************************************************************************
 // Enabling the clock for the port that was passed in.
 //
