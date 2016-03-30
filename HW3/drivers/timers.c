@@ -196,6 +196,8 @@ bool hw3_timer_enable(uint32_t base_addr, uint32_t ticks)
     return false;
   }
 	
+	gp_timer->CTL &= ~TIMER_CTL_TAEN;
+	
 	gp_timer = (TIMER0_Type *)base_addr;
 	
 	gp_timer->ICR |= TIMER_ICR_TATOCINT;

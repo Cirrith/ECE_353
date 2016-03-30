@@ -132,10 +132,11 @@ main(void)
 		
 		if(ALERT_2_SEC)
 		{
-			//printf("2 Second Timer\n\r");
-			
-			hw3_timer1_init();
-			
+			if (Current_State != STATE_IDLE && Current_State !=  STATE_ERROR) {
+				printf("Timeout\n\r");
+				Current_State = STATE_IDLE;
+			}
+
 			ALERT_2_SEC = false;
 		}
 
@@ -145,6 +146,11 @@ main(void)
 			b_press = b_button_pressed();
 			start_press = start_button_pressed();
 			ALERT_DEBOUNCE = false;
+		}
+		else {
+			a_press = false;
+			b_press = false;
+			start_press = false;
 		}
 		
 		switch (Current_State)
@@ -163,6 +169,7 @@ main(void)
 				Next_State = STATE_UP2;
 				UP = false;
 				printf("UP\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
@@ -185,10 +192,11 @@ main(void)
 				Next_State = STATE_DOWN1;
 				UP = false;
 				printf("UP\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_UP2;
 			}
 		break;
 		}
@@ -207,10 +215,11 @@ main(void)
 				Next_State = STATE_DOWN2;
 				DOWN = false;
 				printf("DOWN\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_DOWN1;
 			}
 		break;
 		}
@@ -229,16 +238,18 @@ main(void)
 				Next_State = STATE_LEFT1;
 				DOWN = false;
 				printf("DOWN\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_DOWN2;
 			}
 		break;
 		}
 		
 		case STATE_LEFT1:
 		{
+			hw3_timer1_init();
 			if(a_press | b_press | start_press | DOWN | UP | RIGHT)
 			{
 				Next_State = STATE_ERROR;
@@ -251,10 +262,11 @@ main(void)
 				Next_State = STATE_RIGHT1;
 				LEFT = false;
 				printf("LEFT\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_LEFT1;
 			}
 		break;
 		}
@@ -273,10 +285,11 @@ main(void)
 				Next_State = STATE_LEFT2;
 				RIGHT = false;
 				printf("RIGHT\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_RIGHT1;
 			}
 		break;
 		}
@@ -295,10 +308,11 @@ main(void)
 				Next_State = STATE_RIGHT2;
 				LEFT = false;
 				printf("LEFT\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_LEFT2;
 			}
 		break;
 		}
@@ -317,10 +331,11 @@ main(void)
 				Next_State = STATE_B;
 				RIGHT = false;
 				printf("RIGHT\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_RIGHT2;
 			}
 		break;
 		}
@@ -339,17 +354,18 @@ main(void)
 			{
 				Next_State = STATE_A;
 				printf("B\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_B;
 			}
 		break;
 		}
 		
 		case STATE_A:
 		{
-			if( b_press| start_press | DOWN | UP | LEFT | RIGHT)
+			if(b_press | start_press | DOWN | UP | LEFT | RIGHT)
 			{
 				Next_State = STATE_ERROR;
 				DOWN = false;
@@ -361,10 +377,11 @@ main(void)
 			{
 				Next_State = STATE_START;
 				printf("A\n\r");
+			  hw3_timer1_init();
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_A;
 			}
 		break;
 		}
@@ -387,7 +404,7 @@ main(void)
 			}
 			else
 			{
-				Next_State = STATE_IDLE;
+				Next_State = STATE_START;
 			}
 		break;
 		}
