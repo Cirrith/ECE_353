@@ -1,5 +1,10 @@
 #include "interrupts.h"
 
+#define Timer0 TIMER0_BASE
+#define Timer1 TIMER1_BASE
+
+#define ADC0 ADC0_BASE
+
 volatile bool ALERT_DEBOUNCE = false;
 volatile bool ALERT_2_SEC = false;
 
@@ -9,7 +14,7 @@ void TIMER0A_Handler(void) {
 	
 	ALERT_DEBOUNCE = true;
 	
-	gp_timer = (TIMER0_Type*)TIMER0_BASE;
+	gp_timer = (TIMER0_Type*)Timer0;
 	
 	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 }
@@ -20,27 +25,15 @@ void TIMER1A_Handler() {
 	
 	ALERT_2_SEC = true;
 	
-	gp_timer = (TIMER0_Type*)TIMER1_BASE;
+	gp_timer = (TIMER0_Type*)Timer1;
 	
 	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 }
 
-void TIMER0B_Handler(void)
-{
-	;
-}
+//ADC Compare Interrupt
+void ADC0SS0_Handler() {
 	
-void TIMER1B_Handler(void)
-{
-	;
+	
 }
+	//Use ADC ISC (Interrupt Status and Clear)
 
-void WTIMER0A_Handler()
-{
-	;
-}
-
-void WTIMER1B_Handler ()
-{
-	;
-}
