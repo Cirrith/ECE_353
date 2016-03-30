@@ -29,6 +29,11 @@ bool start_Buf[5] = {0,0,0,0,0};
 bool a_Buf[5] = {0,0,0,0,0};
 bool b_Buf[5] = {0,0,0,0,0};
 
+/* 
+	Push Button Debounce Functions 
+  These are following the method described in ICE 14
+ */
+
 bool start_button_pressed (void)
 {
 	bool val = GPIOF->DATA & UP_PIN; 
@@ -130,9 +135,11 @@ main(void)
   {	
 		Current_State = Next_State;
 		
+		// 2 Sec Timeout, only active if we're in the middle of waiting for the code
 		if(ALERT_2_SEC)
 		{
-			if (Current_State != STATE_IDLE && Current_State !=  STATE_ERROR) {
+			if (Current_State != STATE_IDLE && Current_State != STATE_ERROR) {
+				// Start over if timeout
 				printf("Timeout\n\r");
 				Current_State = STATE_IDLE;
 			}
@@ -140,6 +147,7 @@ main(void)
 			ALERT_2_SEC = false;
 		}
 
+		// Debounce all the buttons on the timer
 		if(ALERT_DEBOUNCE)
 		{
 			a_press = a_button_pressed();
@@ -147,7 +155,7 @@ main(void)
 			start_press = start_button_pressed();
 			ALERT_DEBOUNCE = false;
 		}
-		else {
+		else { // Buttons weren't pressed
 			a_press = false;
 			b_press = false;
 			start_press = false;
@@ -155,7 +163,7 @@ main(void)
 		
 		switch (Current_State)
 		{
-		case STATE_IDLE:
+		case STATE_IDLE: // Wait for UP, restart the timer once it was
 		{			
 			if(a_press | b_press | start_press | LEFT | DOWN | RIGHT)
 			{
@@ -178,7 +186,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_UP2:
+		case STATE_UP2: // Wait for UP, restart the timer once it was
 		{
 			if(a_press | b_press | start_press | LEFT | DOWN | RIGHT)
 			{
@@ -201,7 +209,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_DOWN1:
+		case STATE_DOWN1: // Wait for DOWN, restart the timer once it was
 		{
 			if(a_press | b_press | start_press | LEFT | UP | RIGHT)
 			{
@@ -224,7 +232,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_DOWN2:
+		case STATE_DOWN2: // Wait for DOWN, restart the timer once it was
 		{
 			if(a_press | b_press | start_press | LEFT | UP | RIGHT)
 			{
@@ -247,7 +255,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_LEFT1:
+		case STATE_LEFT1: // Wait for LEFT, restart the timer once it was
 		{
 			hw3_timer1_init();
 			if(a_press | b_press | start_press | DOWN | UP | RIGHT)
@@ -271,7 +279,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_RIGHT1:
+		case STATE_RIGHT1: // Wait for RIGHT, restart the timer once it was
 		{
 			if(a_press | b_press | start_press | DOWN | UP | LEFT)
 			{
@@ -294,7 +302,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_LEFT2:
+		case STATE_LEFT2: // Wait for LEFT, restart the timer once it was
 		{
 			if(a_press | b_press | start_press | DOWN | UP | RIGHT)
 			{
@@ -317,7 +325,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_RIGHT2:
+		case STATE_RIGHT2: // Wait for RIGHT, restart the timer once it was
 		{
 			if(a_press | b_press | start_press | DOWN | UP | LEFT)
 			{
@@ -340,7 +348,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_B:
+		case STATE_B: // Wait for B to be pressed, restart the timer once it was
 		{
 			if(a_press | start_press | DOWN | UP | LEFT | RIGHT)
 			{
@@ -363,7 +371,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_A:
+		case STATE_A: // Wait for A to be pressed, restart the timer once it was
 		{
 			if(b_press | start_press | DOWN | UP | LEFT | RIGHT)
 			{
@@ -386,7 +394,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_START:
+		case STATE_START: // Wait for START to be pressed, restart the timer once it was
 		{
 			if( b_press| a_press | DOWN | UP | LEFT | RIGHT)
 			{
@@ -409,7 +417,7 @@ main(void)
 		break;
 		}
 		
-		case STATE_ERROR:
+		case STATE_ERROR: // All States come here if incorrect key was pressed
 		{
 				Next_State = STATE_IDLE;
 				printf("Error in Sequence\n\r");

@@ -151,10 +151,6 @@ bool gp_timer_config_32(uint32_t base_addr, uint32_t mode, bool count_up, bool e
 
   // Wait for the timer to turn on
   while( (SYSCTL->PRTIMER & timer_pr_mask) == 0) {};
-  
-  //*********************    
-  // ADD CODE
-  //*********************
 
   // Type cast the base address to a TIMER0_Type struct
   gp_timer = (TIMER0_Type *)base_addr;
@@ -187,29 +183,29 @@ bool gp_timer_config_32(uint32_t base_addr, uint32_t mode, bool count_up, bool e
   return true;  
 }
 
+// Enables the timer for the given amount of ticks
 bool hw3_timer_enable(uint32_t base_addr, uint32_t ticks)
 {
 	TIMER0_Type *gp_timer;
   
-  if ( ! verify_base_addr(base_addr) )
+  if (!verify_base_addr(base_addr))
   {
     return false;
   }
 	
+	
 	gp_timer->CTL &= ~TIMER_CTL_TAEN;
 	
 	gp_timer = (TIMER0_Type *)base_addr;
-	
-	gp_timer->ICR |= TIMER_ICR_TATOCINT;
-	
-	gp_timer->TAILR = ticks;
+	gp_timer->ICR |= TIMER_ICR_TATOCINT;  // Clear interrupts
+	gp_timer->TAILR = ticks;							// Set the number of ticks
 	
 	gp_timer->CTL |= TIMER_CTL_TAEN;
 	
 	return true;
 }
 
-
+// Configure Timer0 and enable its interrupt
 void hw3_timer0_init(void)
 {
 	gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_PERIOD, false, true);
@@ -218,6 +214,7 @@ void hw3_timer0_init(void)
 	NVIC_EnableIRQ(TIMER0A_IRQn);
 }
 
+// Configure Timer1 and enable its interrupt
 void hw3_timer1_init(void)
 {
 	gp_timer_config_32(TIMER1_BASE, TIMER_TAMR_TAMR_1_SHOT, false, true);

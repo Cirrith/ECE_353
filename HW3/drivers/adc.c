@@ -117,6 +117,7 @@ uint32_t getADCValue( uint32_t adc_base, uint8_t channel)
   return result;
 }
 
+// Init the ADC and enable its interrupt
 void hw3_adc_init(void)
 {
 	initializeADC(PS2_ADC_BASE);

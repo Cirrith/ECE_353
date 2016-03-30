@@ -7,7 +7,6 @@
 #include "driver_defines.h"
 
 #define SEC2s_TIME			100000000
-
 #define SEC5ms_TIME			250000
 
 bool hw3_timer_enable(uint32_t, uint32_t);

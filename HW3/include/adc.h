@@ -30,6 +30,7 @@
 
 #define   PS2_ADC_BASE     ADC0_BASE
 
+// 75% and 25% of the ADC used for the digital comparitors
 #define		COMP_HIGH				3071 << 16
 #define		COMP_LOW				1023
 
