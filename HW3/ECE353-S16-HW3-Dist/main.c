@@ -25,79 +25,97 @@ char TEAM[] = "Team 18";
 char PERSON1[] = "Ryan Bambrough";
 char PERSON2[] = "Nick Adams";
 
-bool UP[5] = {0,0,0,0,0};
-bool LEFT[5] = {0,0,0,0,0};
-bool RIGHT[5] = {0,0,0,0,0};
+bool start_Buf[5] = {0,0,0,0,0};
+bool a_Buf[5] = {0,0,0,0,0};
+bool b_Buf[5] = {0,0,0,0,0};
 
-bool up_button_pressed (void)
+bool start_button_pressed (void)
 {
 	bool val = GPIOF->DATA & UP_PIN; 
 	
-	UP[4] = UP[3];
-	UP[3] = UP[2];
-  UP[2] = UP[1];
-	UP[1] = UP[0];
-	UP[0] = val;
+	start_Buf[4] = start_Buf[3];
+	start_Buf[3] = start_Buf[2];
+  start_Buf[2] = start_Buf[1];
+	start_Buf[1] = start_Buf[0];
+	start_Buf[0] = val;
 	
-	if(~(UP[0] | UP[1] | UP[2] | UP[3]) & UP[4])
+	if(~(start_Buf[0] | start_Buf[1] | start_Buf[2] | start_Buf[3]) & start_Buf[4])
 		return true;
 	else
 		return false;
 }
 
-bool left_button_pressed (void)
+bool a_button_pressed (void)
 {
 	bool val = GPIOF->DATA & LEFT_PIN; 
 	
-	LEFT[4] = LEFT[3];
-	LEFT[3] = LEFT[2];
-  LEFT[2] = LEFT[1];
-	LEFT[1] = LEFT[0];
-	LEFT[0] = val;
+	a_Buf[4] = a_Buf[3];
+	a_Buf[3] = a_Buf[2];
+  a_Buf[2] = a_Buf[1];
+	a_Buf[1] = a_Buf[0];
+	a_Buf[0] = val;
 	
-	if(~(LEFT[0] | LEFT[1] | LEFT[2] | LEFT[3]) & LEFT[4])
+	if(~(a_Buf[0] | a_Buf[1] | a_Buf[2] | a_Buf[3]) & a_Buf[4])
 		return true;
 	else
 		return false;
 }
 
-bool right_button_pressed (void)
+bool b_button_pressed (void)
 {
 	bool val = GPIOF->DATA & RIGHT_PIN; 
 	
-	RIGHT[4] = RIGHT[3];
-	RIGHT[3] = RIGHT[2];
-  RIGHT[2] = RIGHT[1];
-	RIGHT[1] = RIGHT[0];
-	RIGHT[0] = val;
+	b_Buf[4] = b_Buf[3];
+	b_Buf[3] = b_Buf[2];
+  b_Buf[2] = b_Buf[1];
+	b_Buf[1] = b_Buf[0];
+	b_Buf[0] = val;
 	
-	if(~(RIGHT[0] | RIGHT[1] | RIGHT[2] | RIGHT[3]) & RIGHT[4])
+	if(~(b_Buf[0] | b_Buf[1] | b_Buf[2] | b_Buf[3]) & b_Buf[4])
 		return true;
 	else
 		return false;
 }
 
-//*****************************************************************************
-//*****************************************************************************
 void initialize_board(void)
 {
   
   DisableInterrupts();
   hw3_config();
 	hw3_gpio_init();
-	//hw3_adc_init();
+	hw3_adc_init();
 	hw3_timer0_init();
 	hw3_timer1_init();
   EnableInterrupts();
 }
 
-//*****************************************************************************
-//*****************************************************************************
+typedef enum
+{
+		STATE_IDLE,
+		STATE_UP1,
+		STATE_UP2,
+		STATE_DOWN1,
+		STATE_DOWN2,
+		STATE_LEFT1,
+		STATE_RIGHT1,
+		STATE_LEFT2,
+		STATE_RIGHT2,
+		STATE_B,
+		STATE_A,
+		STATE_START,
+		STATE_ERROR
+}State;
+
 int 
 main(void)
 {
-
-  initialize_board();
+	State Current_State = STATE_IDLE;
+	State Next_State = STATE_IDLE;
+	bool a_press = false;
+	bool b_press = false;
+	bool start_press = false;
+  
+	initialize_board();
   
   printf("\n\r");
   printf("**************************************\n\r");
@@ -109,36 +127,283 @@ main(void)
   
   // Infinite Loop
   while(1)
-  {
-		bool left_press;
-		bool right_press;
-		bool up_press;
+  {	
+		Current_State = Next_State;
 		
 		if(ALERT_2_SEC)
 		{
-			printf("2 Second Timer\n\r");
+			//printf("2 Second Timer\n\r");
 			
 			hw3_timer1_init();
 			
 			ALERT_2_SEC = false;
 		}
-		
+
 		if(ALERT_DEBOUNCE)
 		{
-			left_press = left_button_pressed();
-			right_press = right_button_pressed();
-			up_press = up_button_pressed();
-			
-			if(left_press)
-				printf("LEFT was pressed\n\r");
-			
-			if(right_press)
-				printf("RIGHT was pressed\n\r");
-						
-			if(up_press)
-				printf("UP was pressed\n\r");
-			
+			a_press = a_button_pressed();
+			b_press = b_button_pressed();
+			start_press = start_button_pressed();
 			ALERT_DEBOUNCE = false;
+		}
+		
+		switch (Current_State)
+		{
+		case STATE_IDLE:
+		{			
+			if(a_press | b_press | start_press | LEFT | DOWN | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				LEFT = false;
+				DOWN = false;
+				RIGHT = false;
+			}
+			else if (UP)
+			{
+				Next_State = STATE_UP2;
+				UP = false;
+				printf("UP\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_UP2:
+		{
+			if(a_press | b_press | start_press | LEFT | DOWN | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				LEFT = false;
+				DOWN = false;
+				RIGHT = false;
+			}
+			else if (UP)
+			{
+				Next_State = STATE_DOWN1;
+				UP = false;
+				printf("UP\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_DOWN1:
+		{
+			if(a_press | b_press | start_press | LEFT | UP | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				LEFT = false;
+				UP = false;
+				RIGHT = false;
+			}
+			else if (DOWN)
+			{
+				Next_State = STATE_DOWN2;
+				DOWN = false;
+				printf("DOWN\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_DOWN2:
+		{
+			if(a_press | b_press | start_press | LEFT | UP | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				LEFT = false;
+				UP = false;
+				RIGHT = false;
+			}
+			else if (DOWN)
+			{
+				Next_State = STATE_LEFT1;
+				DOWN = false;
+				printf("DOWN\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_LEFT1:
+		{
+			if(a_press | b_press | start_press | DOWN | UP | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				RIGHT = false;
+			}
+			else if (LEFT)
+			{
+				Next_State = STATE_RIGHT1;
+				LEFT = false;
+				printf("LEFT\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_RIGHT1:
+		{
+			if(a_press | b_press | start_press | DOWN | UP | LEFT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				LEFT = false;
+			}
+			else if (RIGHT)
+			{
+				Next_State = STATE_LEFT2;
+				RIGHT = false;
+				printf("RIGHT\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_LEFT2:
+		{
+			if(a_press | b_press | start_press | DOWN | UP | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				RIGHT = false;
+			}
+			else if (LEFT)
+			{
+				Next_State = STATE_RIGHT2;
+				LEFT = false;
+				printf("LEFT\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_RIGHT2:
+		{
+			if(a_press | b_press | start_press | DOWN | UP | LEFT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				LEFT = false;
+			}
+			else if (RIGHT)
+			{
+				Next_State = STATE_B;
+				RIGHT = false;
+				printf("RIGHT\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_B:
+		{
+			if(a_press | start_press | DOWN | UP | LEFT | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				LEFT = false;
+				RIGHT = false;
+			}
+			else if (b_press)
+			{
+				Next_State = STATE_A;
+				printf("B\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_A:
+		{
+			if( b_press| start_press | DOWN | UP | LEFT | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				LEFT = false;
+				RIGHT = false;
+			}
+			else if (a_press)
+			{
+				Next_State = STATE_START;
+				printf("A\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_START:
+		{
+			if( b_press| a_press | DOWN | UP | LEFT | RIGHT)
+			{
+				Next_State = STATE_ERROR;
+				DOWN = false;
+				UP = false;
+				LEFT = false;
+				RIGHT = false;
+			}
+			else if (start_press)
+			{
+				Next_State = STATE_IDLE;
+				printf("START\n\r");
+				printf("Success! 30 Lives Awarded\n\r");
+			}
+			else
+			{
+				Next_State = STATE_IDLE;
+			}
+		break;
+		}
+		
+		case STATE_ERROR:
+		{
+				Next_State = STATE_IDLE;
+				printf("Error in Sequence\n\r");
+		break;
+		}
+
+		default:
+		{
+			printf("UNKNOWN ERROR\n\r");
+			while(1){}; // Infinite loop
+		}
 		}
 	}
 }

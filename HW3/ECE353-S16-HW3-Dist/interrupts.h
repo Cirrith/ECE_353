@@ -8,6 +8,11 @@
 extern volatile bool ALERT_DEBOUNCE;
 extern volatile bool ALERT_2_SEC;
 
+extern volatile bool LEFT;
+extern volatile bool RIGHT;
+extern volatile bool UP;
+extern volatile bool DOWN;
+
 void TIMER0A_Handler(void);
 void TIMER1A_Handler(void);
 void TIMER0B_Handler(void);
