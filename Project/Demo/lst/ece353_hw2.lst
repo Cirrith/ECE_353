@@ -1,0 +1,117 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; Filename:     main.s 
+    2 00000000         ; Author:       ece353 staff 
+    3 00000000         ; Description:  
+    4 00000000         
+    5 00000000                 export           hw2
+    6 00000000                 export           TEAM
+    7 00000000                 export           PERSON1
+    8 00000000                 export           PERSON2
+    9 00000000         
+   10 00000000         ;**********************************************
+   11 00000000         ; SRAM
+   12 00000000         ;**********************************************
+   13 00000000                 AREA             SRAM, READWRITE
+   14 00000000                 align
+   15 00000000         
+   16 00000000         ;**********************************************
+   17 00000000         ; Constant Variables (FLASH) Segment
+   18 00000000         ;**********************************************
+   19 00000000                 AREA             FLASH, CODE, READONLY
+   20 00000000 54 65 61 
+              6D 30 30 TEAM    DCB              "Team00"
+   21 00000006 00              DCB              0
+   22 00000007 4E 61 6D 
+              65 20 31 PERSON1 DCB              "Name 1"
+   23 0000000D 00              DCB              0
+   24 0000000E 4E 61 6D 
+              65 20 32 PERSON2 DCB              "Name 2"
+   25 00000014 00              DCB              0
+   26 00000015 00 00 00        align
+   27 00000018         
+   28 00000018         ;**********************************************
+   29 00000018         ; Code (FLASH) Segment
+   30 00000018         ; main assembly program
+   31 00000018         ;**********************************************
+   32 00000018         hw2     PROC
+   33 00000018         
+   34 00000018 4770            BX               LR
+   35 0000001A                 ENDP
+   36 0000001A 00 00           align
+   37 0000001C         
+   38 0000001C         
+   39 0000001C                 END
+Command Line: --debug --xref --cpu=Cortex-M4.fp --apcs=interwork --depend=.\obj
+\ece353_hw2.d -o.\obj\ece353_hw2.o -I"D:\Box Sync\ECE353\2016-Spring\src\HW2\EC
+E353-S16-HW2-Sol\RTE" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\3.20.4\CMSIS\Include -IC:
+\Keil_v5\ARM\PACK\Keil\TM4C_DFP\1.0.0\Device\Include\TM4C123 --predefine="__EVA
+L SETA 1" --predefine="__MICROLIB SETA 1" --list=.\lst\ece353_hw2.lst ece353_hw
+2.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+SRAM 00000000
+
+Symbol: SRAM
+   Definitions
+      At line 13 in file ece353_hw2.s
+   Uses
+      None
+Comment: SRAM unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+FLASH 00000000
+
+Symbol: FLASH
+   Definitions
+      At line 19 in file ece353_hw2.s
+   Uses
+      None
+Comment: FLASH unused
+PERSON1 00000007
+
+Symbol: PERSON1
+   Definitions
+      At line 22 in file ece353_hw2.s
+   Uses
+      At line 7 in file ece353_hw2.s
+Comment: PERSON1 used once
+PERSON2 0000000E
+
+Symbol: PERSON2
+   Definitions
+      At line 24 in file ece353_hw2.s
+   Uses
+      At line 8 in file ece353_hw2.s
+Comment: PERSON2 used once
+TEAM 00000000
+
+Symbol: TEAM
+   Definitions
+      At line 20 in file ece353_hw2.s
+   Uses
+      At line 6 in file ece353_hw2.s
+Comment: TEAM used once
+hw2 00000018
+
+Symbol: hw2
+   Definitions
+      At line 32 in file ece353_hw2.s
+   Uses
+      At line 5 in file ece353_hw2.s
+Comment: hw2 used once
+5 symbols
+339 symbols in table

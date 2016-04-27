@@ -1,0 +1,4 @@
+--create ..\ECE353-S16-HW3-Sol\ece353-S16-hw3.lib
+..\ece353-s16-hw3-sol\main.o
+..\ece353-s16-hw3-sol\pc_buffer.o
+..\ece353-s16-hw3-sol\uart.o
