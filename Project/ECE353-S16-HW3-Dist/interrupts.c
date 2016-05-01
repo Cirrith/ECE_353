@@ -1,49 +1,79 @@
 #include "interrupts.h"
+#include "gpio_port.h"
 
 #define Timer0 TIMER0_BASE
 #define Timer1 TIMER1_BASE
+#define Timer2 TIMER2_BASE
 
 #define Adc0 ADC0_BASE
+#define Adc1 ADC1_BASE
 
 // Globals that the main routine looks at
 volatile bool ALERT_DEBOUNCE = false;
+volatile bool ALERT_5_SEC = false;
 volatile bool ALERT_2_SEC = false;
+
+volatile bool ALERT_LED = false;
 
 volatile bool UP = false;
 volatile bool DOWN = false;
 volatile bool RIGHT = false;
 volatile bool LEFT = false;
 
+volatile bool ALERT_WIRELESS = false;
 
 extern PC_Buffer UART0_Rx_Buffer;
 extern PC_Buffer UART0_Tx_Buffer;
 
 // ISR Used to de-bounce push buttons
-void TIMER0A_Handler(void) {
-	TIMER0_Type *gp_timer;
-	ADC0_Type *myADC;
+void SysTick_Handler(void) {
+	uint32_t val;
 	
 	// Let main know the timer went off
 	ALERT_DEBOUNCE = true;
+	
+	ALERT_LED = true;
+	
+	val = SysTick->VAL;
+}
+
+void TIMER0A_Handler(void) {
+	TIMER0_Type *gp_timer;
+	ADC0_Type *myADC;
 	
 	// Clear this interrupt
 	gp_timer = (TIMER0_Type*)Timer0;
 	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 	
-	// Start the ADC0
+	// Start the ADC0 and ADC1
 	myADC = (ADC0_Type *) Adc0;
 	myADC->PSSI = ADC_PSSI_SS0;
+	
+	myADC = (ADC0_Type *) Adc1;
+	myADC->PSSI = ADC_PSSI_SS3;
+}
+
+// 5 Second Timer ISR
+void TIMER1A_Handler() {
+	TIMER0_Type *gp_timer;
+	
+	// Let main know the timer went off
+	ALERT_5_SEC = true;
+	
+	// Clear this interrupt
+	gp_timer = (TIMER0_Type*)Timer1;
+	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 }
 
 // 2 Second Timer ISR
-void TIMER1A_Handler() {
+void TIMER2A_Handler() {
 	TIMER0_Type *gp_timer;
 	
 	// Let main know the timer went off
 	ALERT_2_SEC = true;
 	
 	// Clear this interrupt
-	gp_timer = (TIMER0_Type*)Timer1;
+	gp_timer = (TIMER0_Type*)Timer2;
 	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 }
 
@@ -62,6 +92,18 @@ void ADC0SS0_Handler() {
 	// Clear this interrupt
 	myADC->DCISC |= 0x1F;
 	myADC->ISC |= 0x10001;
+}
+
+// Nordic IRQ
+void GPIOD_Handler(void) {
+	GPIOA_Type *gpio = (GPIOA_Type *) GPIOD_BASE;
+	
+	ALERT_WIRELESS = true;
+	
+	gpio->ICR |= nIRQ_PIN_NUM;
+}
+
+void WDT0_Handler(void) {
 	
 }
 

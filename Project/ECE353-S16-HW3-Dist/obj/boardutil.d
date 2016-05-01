@@ -24,3 +24,4 @@
 .\obj\boardutil.o: ../include/lcd.h
 .\obj\boardutil.o: ../include/spi.h
 .\obj\boardutil.o: ../include/fonts.h
+.\obj\boardutil.o: ../include/wireless.h

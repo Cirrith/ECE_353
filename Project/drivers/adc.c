@@ -1,10 +1,6 @@
 #include "adc.h"
 
-/******************************************************************************
- * Initializes ADC to use Sample Sequencer #3, triggered by the processor,
- * no IRQs
- *****************************************************************************/
-bool initializeADC(  uint32_t adc_base )
+bool initializeADC4PS2(uint32_t adc_base)
 {
   ADC0_Type  *myADC;
   uint32_t rcgc_adc_mask;
@@ -85,6 +81,68 @@ bool initializeADC(  uint32_t adc_base )
 }
 
 /******************************************************************************
+ * Initializes ADC to use Sample Sequencer #3, triggered by the processor,
+ * no IRQs
+ *****************************************************************************/
+bool initializeADC4POT(uint32_t adc_base)
+{
+  ADC0_Type  *myADC;
+  uint32_t rcgc_adc_mask;
+  uint32_t pr_mask;
+  
+  // examine the adc_base.  Verify that it is either ADC0 or ADC1
+  // Set the rcgc_adc_mask and pr_mask  
+  switch (adc_base) 
+  {
+    case ADC0_BASE :
+    {
+      // set rcgc_adc_mask
+			rcgc_adc_mask = SYSCTL_RCGCADC_R0;
+      
+      // Set pr_mask 
+			pr_mask = SYSCTL_PRADC_R0;
+      break;
+    }
+    case ADC1_BASE :
+    {
+      // set rcgc_adc_mask
+			rcgc_adc_mask = SYSCTL_RCGCADC_R1;
+      
+      // Set pr_mask 
+			pr_mask = SYSCTL_PRADC_R1;
+      break;
+    }
+    
+    default:
+      return false;
+  }
+  
+  // Turn on the ADC Clock
+  SYSCTL->RCGCADC |= rcgc_adc_mask;
+  
+  // Wait for ADCx to become ready
+  while( (pr_mask & SYSCTL->PRADC) != pr_mask){}
+    
+  // Type Cast adc_base and set it to myADC
+  myADC = (ADC0_Type *)adc_base;
+  
+  // disable sample sequencer #3 by writing a 0 to the 
+  // corresponding ASENn bit in the ADCACTSS register 
+	myADC->ACTSS &= ~ADC_ACTSS_ASEN3;
+
+  // Set the event multiplexer to trigger conversion on a processor trigger
+  // for sample sequencer #3.
+  //myADC->EMUX &= ~ADC_EMUX_EM3_M;
+	myADC->EMUX |= ADC_EMUX_EM3_PROCESSOR;
+
+  // Set IE0 and END0 in SSCTL3
+	myADC->SSCTL3 |= ADC_SSCTL3_IE0;
+	myADC->SSCTL3 |= ADC_SSCTL3_END0;
+  
+  return true;
+}
+
+/******************************************************************************
  * Reads SSMUX3 for the given ADC.  Busy waits until completion
  *****************************************************************************/
 uint32_t getADCValue( uint32_t adc_base, uint8_t channel)
@@ -103,7 +161,7 @@ uint32_t getADCValue( uint32_t adc_base, uint8_t channel)
   
   myADC->ACTSS |= ADC_ACTSS_ASEN3;  // Enable SS3
   
-  myADC->PSSI =   ADC_PSSI_SS3;     // Start SS3
+  //myADC->PSSI =   ADC_PSSI_SS3;     // Start SS3
   
   while( (myADC->RIS & ADC_RIS_INR3)  == 0)
   {
@@ -113,6 +171,8 @@ uint32_t getADCValue( uint32_t adc_base, uint8_t channel)
   result = myADC->SSFIFO3 & 0xFFF;    // Read 12-bit data
   
   myADC->ISC  = ADC_ISC_IN3;          // Ack the conversion
+	
+  myADC->ACTSS &= ~ADC_ACTSS_ASEN3;  // Disable SS3
   
   return result;
 }
@@ -120,8 +180,12 @@ uint32_t getADCValue( uint32_t adc_base, uint8_t channel)
 // Init the ADC and enable its interrupt
 void hw3_adc_init(void)
 {
-	initializeADC(PS2_ADC_BASE);
+	initializeADC4PS2(PS2_ADC_BASE);
 	NVIC_SetPriority(ADC0SS0_IRQn, 1);
 	NVIC_EnableIRQ(ADC0SS0_IRQn);
+	
+	initializeADC4POT(POT_ADC_BASE);
+	NVIC_SetPriority(ADC1SS3_IRQn, 1);
+	NVIC_EnableIRQ(ADC1SS3_IRQn);
 }
 

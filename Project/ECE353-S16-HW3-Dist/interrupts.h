@@ -8,12 +8,15 @@
 #include "uart_irqs.h"
 
 extern volatile bool ALERT_DEBOUNCE;
+extern volatile bool ALERT_5_SEC;
 extern volatile bool ALERT_2_SEC;
 
 extern volatile bool LEFT;
 extern volatile bool RIGHT;
 extern volatile bool UP;
 extern volatile bool DOWN;
+
+extern volatile bool ALERT_WIRELESS;
 
 void TIMER0A_Handler(void);
 void TIMER1A_Handler(void);

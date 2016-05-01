@@ -1,5 +1,7 @@
 #include "wireless.h"
 
+uint32_t wirelessPacketsSent = 0;
+uint32_t wirelessPacketsReceived = 0;
 
 extern void spiTx(uint32_t base, uint8_t *tx_data, int size, uint8_t *rx_data);
 extern bool spiVerifyBaseAddr(uint32_t base);
@@ -175,10 +177,10 @@ static __INLINE void wireless_tx_data_payload( uint32_t data)
 	uint8_t rx;
 	
 	tx[0] = 0xA0;
-	tx[1] =(data & 0xf000) >> 12;
-	tx[2] = (data & 0x0f00) >> 8;
-	tx[3] = (data & 0x00f0) >> 4;
-	tx[4] = (data & 0x000f);
+	tx[1] =(data & 0xff000000) >> 24;
+	tx[2] = (data & 0xff0000) >> 16;
+	tx[3] = (data & 0x0ff00) >> 8;
+	tx[4] = (data & 0x00ff);
 	
   wireless_CSN_low();
 	
@@ -219,7 +221,7 @@ static __INLINE void wireless_rx_data_payload( uint32_t *data)
 	spiTx(RF_SPI_BASE, &tx[1], 1, &rx[3]);
 	spiTx(RF_SPI_BASE, &tx[1], 1, &rx[4]);
 	
-	*data = (rx[1] << 12) | (rx[2] << 8) | (rx[3] << 4) | (rx[4]);
+	*data = (rx[1] << 24) | (rx[2] << 16) | (rx[3] << 8) | (rx[4]);
 	
   wireless_CSN_high();
 }
@@ -546,6 +548,7 @@ wireless_send_32(
     
     if (status == true)
     {
+			wirelessPacketsSent++;
       return NRF24L01_TX_SUCCESS;
     }
     else
@@ -591,6 +594,7 @@ wireless_get_32(
           wireless_reg_write(NRF24L01_STATUS_R, NRF24L01_STATUS_RX_DR_M);
       }
     
+			wirelessPacketsReceived++;
       return NRF24L01_RX_SUCCESS;
     }
     else if ( (wireless_rx_fifo_empty() == true) && blockOnEmpty)
@@ -610,6 +614,7 @@ wireless_get_32(
           wireless_reg_write(NRF24L01_STATUS_R, NRF24L01_STATUS_RX_DR_M);
       }
       
+			wirelessPacketsReceived++;
       return NRF24L01_RX_SUCCESS;
     }
     else
@@ -728,8 +733,8 @@ void wireless_initialize(void)
 //*****************************************************************************
 void wireless_test(void)
 {
-	uint8_t myID[]      = { '3', '5', '3', '3', '3'};
-	uint8_t remoteID[]  = { '3', '5', '3', '4', '4'};
+	uint8_t myID[]      = { '3', '5', '3', '7', '1'};
+	uint8_t remoteID[]  = { '3', '5', '3', '7', '0'};
 	wireless_com_status_t status;
 	int i = 0;
 	int j = 0;

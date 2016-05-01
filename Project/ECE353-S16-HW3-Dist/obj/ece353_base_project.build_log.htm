@@ -4,44 +4,14 @@
 <h1>µVision Build Log</h1>
 <h2>Project:</h2>
 I:\353\ECE_353\Project\ECE353-S16-HW3-Dist\ECE353-S16-HW3.uvprojx
-Project File Date:  03/29/2016
+Project File Date:  04/27/2016
 
 <h2>Output:</h2>
-Rebuild target 'ECE353-S16-HW3'
-compiling main.c...
-compiling interrupts.c...
+Build target 'ECE353-S16-HW3'
 compiling boardUtil.c...
-boardUtil.c(72): warning:  #223-D: function "wireless_initialize" declared implicitly
-        wireless_initialize();
-boardUtil.c(73): warning:  #223-D: function "wireless_configure_device" declared implicitly
-        wireless_configure_device(myID, remoteID);
-boardUtil.c: 2 warnings, 0 errors
-compiling adc.c...
-compiling gpio_port.c...
-..\drivers\gpio_port.c(87): warning:  #177-D: variable "pr_mask" was declared but never referenced
-    uint32_t pr_mask = 0;
-..\drivers\gpio_port.c: 1 warning, 0 errors
-compiling timers.c...
-compiling eeprom.c...
-..\drivers\eeprom.c(187): warning:  #223-D: function "rand" declared implicitly
-      write_data[i] = rand();
-..\drivers\eeprom.c: 1 warning, 0 errors
-compiling fonts.c...
-compiling i2c.c...
-compiling lcd.c...
-..\drivers\lcd.c(44): warning:  #177-D: function "lcd_assert_reset" was declared but never referenced
-  __INLINE static void lcd_assert_reset(void)
-..\drivers\lcd.c: 1 warning, 0 errors
-compiling pc_buffer.c...
-compiling spi.c...
-compiling uart.c...
-compiling uart_irqs.c...
-compiling wireless.c...
-assembling startup_TM4C123.s...
-compiling system_TM4C123.c...
 linking...
-Program Size: Code=10268 RO-data=4148 RW-data=96 ZI-data=4128  
-".\obj\ece353_base_project.axf" - 0 Error(s), 5 Warning(s).
+Program Size: Code=13680 RO-data=4212 RW-data=84 ZI-data=4292  
+".\obj\ece353_base_project.axf" - 0 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -76,10 +46,18 @@ Connecting: Mode=JTAG, Speed=1000000Hz
 Erase Done.
 Programming Done.
 Verify OK.
-</pre>
-</body>
-</html>
-e folders:</h2>
+ Device\Source\system_TM4C123.c
+Target not created
+roller Software Interface Standard)
+   * Component: CORE Version: 3.30.0
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.TM4C_DFP.1.0.0.pack
+                Keil::Device:Startup:1.0.0
+                Texas Instruments Tiva C Series Device Support and Examples
+   * Component: Startup Version: 1.0.0
+
+<h2>Collection of Component include folders:</h2>
   I:\353\ECE_353\Project\ECE353-S16-HW3-Dist\RTE
   C:\AppV\mdk_510\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include
   C:\AppV\mdk_510\ARM\PACK\Keil\TM4C_DFP\1.0.0\Device\Include\TM4C123
@@ -93,12 +71,17 @@ e folders:</h2>
       Include file:  Device\Include\TM4C123\TM4C123.h
       Source file:   Device\Source\ARM\startup_TM4C123.s
       Source file:   Device\Source\system_TM4C123.c
-Load "I:\\353\\ECE_353\\Project\\ECE353-S16-HW3-Dist\\obj\\ece353_base_project.axf" 
-Connecting: Mode=JTAG, Speed=1000000Hz
-Erase Done.
-Programming Done.
-Verify OK.
-ile:  Device\Include\TM4C123\TM4C123.h
+M4C123.h
       Source file:   Device\Source\ARM\startup_TM4C123.s
       Source file:   Device\Source\system_TM4C123.c
+Target not created
+:CORE:3.30.0
+      Source file:   CMSIS\UserCodeTemplates\ARM\ITM_Retarget.c
+
+   * Component: Keil::Device:Startup:1.0.0
+      Include file:  Device\Include\TM4C123\TM4C123.h
+      Source file:   Device\Source\ARM\startup_TM4C123.s
+      Source file:   Device\Source\system_TM4C123.c
+Target not created
+23.c
 Target not created

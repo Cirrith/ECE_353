@@ -337,23 +337,9 @@ bool  gpio_config_open_drain(uint32_t gpioBase, uint8_t pins)
   return true;
 }
 
-/*bool  gpio_config_port_control(uint32_t baseAddr, uint32_t mask, uint32_t pctl)
-{
-	GPIOA_Type *gpioPort;
-	
-	if(!verifyBaseAddr(baseAddr))
-	{
-		return false;
-	}
-	
-	gpioPort->PCTL &= ~mask;
-	gpioPort->PCTL |= pctl;
-	
-	return true;
-}*/
-
 void 	hw3_gpio_init(void)
 {
+	GPIOA_Type *gpio;
 	//Enable PS2
 	gpio_enable_port(PS2_GPIO_BASE);
 	gpio_config_enable_input(PS2_GPIO_BASE, PS2_X_PIN_NUM | PS2_Y_PIN_NUM);
@@ -361,14 +347,32 @@ void 	hw3_gpio_init(void)
 	gpio_config_alternate_function(PS2_GPIO_BASE, PS2_X_PIN_NUM | PS2_Y_PIN_NUM);
 	
 	// Enable PS2 Button
-	gpio_enable_port(GPIOE_BASE);
-	gpio_config_enable_input(GPIOE_BASE, PS2BTN_PIN);
-	gpio_config_digital_enable(GPIOE_BASE, PS2BTN_PIN);
-	gpio_config_enable_pullup(GPIOE_BASE, PS2BTN_PIN);
+	gpio_enable_port(PS2_GPIO_BASE);
+	gpio_config_enable_input(PS2_GPIO_BASE, PS2BTN_PIN);
+	gpio_config_digital_enable(PS2_GPIO_BASE, PS2BTN_PIN);
+	gpio_config_enable_pullup(PS2_GPIO_BASE, PS2BTN_PIN);
 	
 	//Enable Push Buttons
 	gpio_enable_port(PBU_GPIO_BASE);
 	gpio_config_enable_input(PBU_GPIO_BASE, LEFT_PIN | RIGHT_PIN | UP_PIN);
 	gpio_config_digital_enable(PBU_GPIO_BASE, LEFT_PIN | RIGHT_PIN | UP_PIN);
 	gpio_config_enable_pullup(PBU_GPIO_BASE, LEFT_PIN | RIGHT_PIN | UP_PIN);
+	
+	// Enable POT
+	gpio_enable_port(POT_GPIO_BASE);
+	gpio_config_enable_input(POT_GPIO_BASE, POT_PIN_NUM);
+	gpio_config_analog_enable(POT_GPIO_BASE, POT_PIN_NUM);
+	gpio_config_alternate_function(POT_GPIO_BASE, POT_PIN_NUM);
+	
+	// Enable Nordic IRQ
+	gpio_enable_port(NORD_GPIO_BASE);
+	gpio_config_enable_input(NORD_GPIO_BASE, nIRQ_PIN_NUM);
+	gpio_config_digital_enable(NORD_GPIO_BASE, nIRQ_PIN_NUM);
+	
+	gpio = (GPIOA_Type *)NORD_GPIO_BASE;
+	gpio->IM |= nIRQ_PIN_NUM;
+	gpio->ICR &= ~nIRQ_PIN_NUM;
+	
+	NVIC_SetPriority(GPIOD_IRQn, 1);
+	NVIC_EnableIRQ(GPIOD_IRQn);
 }

@@ -21,7 +21,7 @@ i2c_status_t initializeI2CMaster(uint32_t base_addr)
   
   // Validate that a correct base address has been passed
     // Turn on the Clock Gating Register
-    switch (base_addr) 
+    switch (base_addr)
     {
       case I2C0_BASE :
           SYSCTL->RCGCI2C |= SYSCTL_RCGCI2C_R0;

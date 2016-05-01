@@ -9,7 +9,6 @@
 #include <stdbool.h>
 #include "TM4C123.h"
 
-
 #include "boardUtil.h"
 
 extern void hw3_config(void);
@@ -20,9 +19,11 @@ extern void EnableInterrupts(void);
 /******************************************************************************
  * Global Variables
  *****************************************************************************/
-char TEAM[] = "Team 18";
-char PERSON1[] = "Ryan Bambrough";
-char PERSON2[] = "Nick Adams";
+ #define NAMELEN  81
+ 
+char team[3] = {0, 0, 0};
+char person1[NAMELEN];
+char person2[NAMELEN];
 
 bool ps2_Buf[5] = {0,0,0,0,0};
 bool start_Buf[5] = {0,0,0,0,0};
@@ -118,6 +119,10 @@ typedef enum
 int 
 main(void)
 {
+	char ryan[] = "Ryan Bambrough";
+	char nick[] = "Nick Adams";
+	char input[NAMELEN];
+	
 	State Current_State = STATE_IDLE;
 	State Next_State = STATE_IDLE;
 	bool a_press = false;
@@ -126,6 +131,7 @@ main(void)
 	bool ps2_press = false;
 	
 	int i,j;
+	uint32_t data;
   
 	initialize_board();
   lcd_clear();
@@ -140,18 +146,66 @@ main(void)
     }
   }
   
+	eeprom_byte_read(EEPROM_I2C_BASE, 0, (uint8_t *)&team[0]);
+	eeprom_byte_read(EEPROM_I2C_BASE, 1, (uint8_t *)&team[1]);
+	
+	if (team[0] != '1' || team[1] != '8') {
+		eeprom_byte_write(EEPROM_I2C_BASE, 0, '1');
+		eeprom_byte_write(EEPROM_I2C_BASE, 1, '8');
+		
+		j = strlen(ryan)+1;
+		for (i = 0; i < j; i++) {
+			eeprom_byte_write(EEPROM_I2C_BASE, i+2, ryan[i]);
+		}
+		
+		j = strlen(nick)+1;
+		for (i = 0; i < j; i++) {
+			eeprom_byte_write(EEPROM_I2C_BASE, i+NAMELEN+2, nick[i]);
+		}
+	}
+	
+	eeprom_byte_read(EEPROM_I2C_BASE, 0, (uint8_t *)&team[0]);
+	eeprom_byte_read(EEPROM_I2C_BASE, 1, (uint8_t *)&team[1]);
+	
+	for (i = 0; i < NAMELEN; i++) {
+		eeprom_byte_read(EEPROM_I2C_BASE, i+2, (uint8_t *)&person1[i]);
+		if (person1[i] == 0) break;
+	}
+	
+	for (i = 0; i < NAMELEN; i++) {
+		eeprom_byte_read(EEPROM_I2C_BASE, i+NAMELEN+2, (uint8_t *)&person2[i]);
+		if (person2[i] == 0) break;
+	}
+	
   printf("\n\r");
-  printf("**************************************\n\r");
-  printf("* ECE353 - Spring 2016 HW3\n\r");
-  printf("*   %s\n\r",TEAM);
-  printf("*      %s\n\r",PERSON1);
-  printf("*      %s\n\r",PERSON2);
-  printf("**************************************\n\r");
+  printf("Student 1: %s\n\r", person1);
+  printf("Student 2: %s\n\r", person2);
+  printf("Team Number: %s\n\r", team);
+	
+	//wireless_test();
+	//test_eeprom();
   
   // Infinite Loop
   while(1)
   {	
 		Current_State = Next_State;
+		
+		if (ALERT_WIRELESS) {
+			if ( wireless_get_32(false, &data) == NRF24L01_RX_SUCCESS )
+			{
+					printf("Received: %d\n\r", data);
+			}
+
+			//PETWATCHDOG();
+			ALERT_WIRELESS = false;
+		}
+		
+		// 5 Sec Timeout, only active if we're in the middle of waiting for the code
+		if(ALERT_5_SEC)
+		{
+			printf("Packets Rx: %d Tx: %d\n\r", wirelessPacketsReceived, wirelessPacketsSent);
+			ALERT_5_SEC = false;
+		}
 		
 		// 2 Sec Timeout, only active if we're in the middle of waiting for the code
 		if(ALERT_2_SEC)
@@ -161,7 +215,7 @@ main(void)
 				printf("Timeout\n\r");
 				Current_State = STATE_IDLE;
 			}
-
+			
 			ALERT_2_SEC = false;
 		}
 
@@ -181,8 +235,52 @@ main(void)
 			ps2_press = false;
 		}
 		
-		if (ps2_press)
-			printf("PS2 Btn!!\n\r");
+		if (ps2_press) {
+			#if WATCHDOG
+			WATCHDOG0->CTL = 0;
+			#endif
+			
+			//uint32_t data = getADCValue(ADC1_BASE, POT_CHANNEL);
+			printf("\n\rStudent 1: %s\n\r", person1);
+			printf("Student 2: %s\n\r", person2);
+			printf("Team Number: %s\n\r", team);
+			
+			printf("\n\rEnter Student 1: ");
+			scanf("%79[^\n]", input);
+			for (i = 0; i < NAMELEN; i++) {
+				if (input[i] == '\n' || input[i] == '\r') {
+					eeprom_byte_write(EEPROM_I2C_BASE, i+2, 0);
+					break;
+				}
+				
+				eeprom_byte_write(EEPROM_I2C_BASE, i+2, input[i]);
+				person1[i] = input[i];
+				if (person1[i] == 0) break;
+			}
+			
+			printf("Enter Student 2: ");
+			scanf("%79[^\n]", input);
+			for (i = 0; i < NAMELEN; i++) {
+				if (input[i] == '\n' || input[i] == '\r') {
+					eeprom_byte_write(EEPROM_I2C_BASE, i+NAMELEN+2, 0);
+					break;
+				}
+				
+				eeprom_byte_write(EEPROM_I2C_BASE, i+NAMELEN+2, input[i]);
+				person2[i] = input[i];
+				if (person2[i] == 0) break;
+			}
+			
+			printf("Enter Team: ");
+			scanf("%2[^\n]", input);
+			eeprom_byte_write(EEPROM_I2C_BASE, 0, input[0]);
+			eeprom_byte_write(EEPROM_I2C_BASE, 1, input[1]);
+			team[0] = input[0];
+			team[1] = input[1];
+			
+			// Goodbye!
+			NVIC_SystemReset();
+		}
 		
 		switch (Current_State)
 		{
@@ -200,7 +298,7 @@ main(void)
 				Next_State = STATE_UP2;
 				UP = false;
 				printf("UP\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -223,7 +321,7 @@ main(void)
 				Next_State = STATE_DOWN1;
 				UP = false;
 				printf("UP\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -246,7 +344,7 @@ main(void)
 				Next_State = STATE_DOWN2;
 				DOWN = false;
 				printf("DOWN\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -269,7 +367,7 @@ main(void)
 				Next_State = STATE_LEFT1;
 				DOWN = false;
 				printf("DOWN\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -280,7 +378,7 @@ main(void)
 		
 		case STATE_LEFT1: // Wait for LEFT, restart the timer once it was
 		{
-			hw3_timer1_init();
+			hw3_timer2_init();
 			if(a_press | b_press | start_press | DOWN | UP | RIGHT)
 			{
 				Next_State = STATE_ERROR;
@@ -293,7 +391,7 @@ main(void)
 				Next_State = STATE_RIGHT1;
 				LEFT = false;
 				printf("LEFT\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -316,7 +414,7 @@ main(void)
 				Next_State = STATE_LEFT2;
 				RIGHT = false;
 				printf("RIGHT\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -339,7 +437,7 @@ main(void)
 				Next_State = STATE_RIGHT2;
 				LEFT = false;
 				printf("LEFT\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -362,7 +460,7 @@ main(void)
 				Next_State = STATE_B;
 				RIGHT = false;
 				printf("RIGHT\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -385,7 +483,7 @@ main(void)
 			{
 				Next_State = STATE_A;
 				printf("B\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{
@@ -408,7 +506,7 @@ main(void)
 			{
 				Next_State = STATE_START;
 				printf("A\n\r");
-			  hw3_timer1_init();
+			  hw3_timer2_init();
 			}
 			else
 			{

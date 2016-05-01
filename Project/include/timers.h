@@ -6,8 +6,10 @@
 
 #include "driver_defines.h"
 
+#define SEC5s_TIME			250000000
 #define SEC2s_TIME			100000000
 #define SEC5ms_TIME			250000
+#define SECPT5ms_TIME		25000
 
 //*****************************************************************************
 // Configure a general purpose timer to be a 32-bit timer.  
@@ -39,4 +41,5 @@ bool gp_timer_wait(uint32_t base_addr, uint32_t ticks);
 bool hw3_timer_enable(uint32_t, uint32_t);
 void hw3_timer0_init(void);
 void hw3_timer1_init(void);
+void hw3_timer2_init(void);
 #endif

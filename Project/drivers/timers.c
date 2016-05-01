@@ -186,6 +186,76 @@ bool gp_timer_config_32(uint32_t base_addr, uint32_t mode, bool count_up, bool e
   return true;  
 }
 
+//*****************************************************************************
+// Configure a general purpose timer to be a 16-bit timer.  
+//
+// Paramters
+//  base_address          The base address of a general purpose timer
+//
+//  mode                  bit mask for Periodic, One-Shot, or Capture
+//
+//  count_up              When true, the timer counts up.  When false, it counts
+//                        down
+//
+//  enable_interrupts     When set to true, the timer generates and interrupt
+//                        when the timer expires.  When set to false, the timer
+//                        does not generate interrupts.
+//
+//The function returns true if the base_addr is a valid general purpose timer
+//*****************************************************************************
+bool gp_timer_config_16(uint32_t base_addr, uint32_t mode, bool count_up, bool enable_interrupts)
+{
+  uint32_t timer_rcgc_mask;
+  uint32_t timer_pr_mask;
+  TIMER0_Type *gp_timer;
+  
+  // Verify the base address.
+  if ( ! verify_base_addr(base_addr) )
+  {
+    return false;
+  }
+  
+  // get the correct RCGC and PR masks for the base address
+  get_clock_masks(base_addr, &timer_rcgc_mask, &timer_pr_mask);
+  
+  // Turn on the clock for the timer
+  SYSCTL->RCGCTIMER |= timer_rcgc_mask;
+
+  // Wait for the timer to turn on
+  while( (SYSCTL->PRTIMER & timer_pr_mask) == 0) {};
+
+  // Type cast the base address to a TIMER0_Type struct
+  gp_timer = (TIMER0_Type *)base_addr;
+    
+  // Stop the timers
+	gp_timer->CTL &= ~TIMER_CTL_TAEN | ~TIMER_CTL_TBEN;
+
+  // Set the timer to be a 16-bit timer
+  gp_timer->CFG &= TIMER_CFG_16_BIT;
+
+  // Clear the timer mode 
+  gp_timer->TAMR = 0;
+  
+	// Set the mode
+  gp_timer->TAMR |= mode;
+
+  // Set the timer direction.  count_up: 0 for down, 1 for up.
+  
+  if( count_up )
+  {
+    gp_timer->TAMR |= TIMER_TAMR_TACDIR;
+  }
+  
+  // Disable Timer Interrupts
+	gp_timer->IMR &= ~TIMER_IMR_TATOIM;
+	if(enable_interrupts)
+	{
+		gp_timer->IMR |= TIMER_IMR_TATOIM;
+	}
+    
+  return true;  
+}
+
 // Enables the timer for the given amount of ticks
 bool hw3_timer_enable(uint32_t base_addr, uint32_t ticks)
 {
@@ -211,8 +281,8 @@ bool hw3_timer_enable(uint32_t base_addr, uint32_t ticks)
 // Configure Timer0 and enable its interrupt
 void hw3_timer0_init(void)
 {
-	gp_timer_config_32(TIMER0_BASE, TIMER_TAMR_TAMR_PERIOD, false, true);
-	hw3_timer_enable(TIMER0_BASE, SEC5ms_TIME);
+	gp_timer_config_16(TIMER0_BASE, TIMER_TAMR_TAMR_PERIOD, false, true);
+	hw3_timer_enable(TIMER0_BASE, SECPT5ms_TIME);
 	NVIC_SetPriority(TIMER0A_IRQn, 1);
 	NVIC_EnableIRQ(TIMER0A_IRQn);
 }
@@ -220,9 +290,18 @@ void hw3_timer0_init(void)
 // Configure Timer1 and enable its interrupt
 void hw3_timer1_init(void)
 {
-	gp_timer_config_32(TIMER1_BASE, TIMER_TAMR_TAMR_1_SHOT, false, true);
-	hw3_timer_enable(TIMER1_BASE, SEC2s_TIME);
+	gp_timer_config_32(TIMER1_BASE, TIMER_TAMR_TAMR_PERIOD, false, true);
+	hw3_timer_enable(TIMER1_BASE, SEC5s_TIME);
 	NVIC_SetPriority(TIMER1A_IRQn, 1);
 	NVIC_EnableIRQ(TIMER1A_IRQn);
+}
+
+// Configure Timer1 and enable its interrupt
+void hw3_timer2_init(void)
+{
+	gp_timer_config_32(TIMER2_BASE, TIMER_TAMR_TAMR_1_SHOT, false, true);
+	hw3_timer_enable(TIMER2_BASE, SEC2s_TIME);
+	NVIC_SetPriority(TIMER2A_IRQn, 1);
+	NVIC_EnableIRQ(TIMER2A_IRQn);
 }
 

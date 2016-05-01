@@ -3,11 +3,18 @@
 
 #include "driver_defines.h"
 
+#define   NORD_GPIO_BASE   	GPIOD_BASE
 #define   PS2_GPIO_BASE    	GPIOE_BASE
+#define   POT_GPIO_BASE    	GPIOE_BASE
 #define		PBU_GPIO_BASE			GPIOF_BASE
+
 
 #define   PS2_X_PIN_NUM      (1 << 2)
 #define   PS2_Y_PIN_NUM      (1 << 3)
+
+#define   POT_PIN_NUM       (1 << 1)
+
+#define   nIRQ_PIN_NUM       (1 << 7)
 
 #define		UP_PIN							(1 << 1)
 #define		RIGHT_PIN						(1 << 2)

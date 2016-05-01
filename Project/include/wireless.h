@@ -179,6 +179,8 @@
 #define NRF24L01_CMD_TX_PAYLOAD_NO_ACK          0xB0
 #define NRF24L01_CMD_NOP                        0xFF
 
+extern uint32_t wirelessPacketsSent;
+extern uint32_t wirelessPacketsReceived;
 
 typedef enum {
   PTX  = 0x00,

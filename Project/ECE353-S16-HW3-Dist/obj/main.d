@@ -25,3 +25,4 @@
 .\obj\main.o: ../include/lcd.h
 .\obj\main.o: ../include/spi.h
 .\obj\main.o: ../include/fonts.h
+.\obj\main.o: ../include/wireless.h

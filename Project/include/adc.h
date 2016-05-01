@@ -30,9 +30,23 @@
 
 #define   PS2_ADC_BASE     ADC0_BASE
 
+#define   POT_ADC_BASE     ADC1_BASE
+#define   POT_CHANNEL			 2
+
 // 75% and 25% of the ADC used for the digital comparitors
 #define		COMP_HIGH				3071 << 16
 #define		COMP_LOW				1023
+
+/******************************************************************************
+ * Initializes ADC to use Sample Sequencer #0
+ * Parameters:
+ *  adc_base - The user must pass ADC0_BASE or ADC1_BASE.
+ *
+ * Returns:
+ *  true  - if an valid base address was passed in
+ *  false - if an invalid base address was passed in
+ *****************************************************************************/
+bool initializeADC4PS2(uint32_t adc_base);
 
 /******************************************************************************
  * Initializes ADC to use Sample Sequencer #3, triggered by software, no IRQs
@@ -44,7 +58,7 @@
  *  true  - if an valid base address was passed in
  *  false - if an invalid base address was passed in
  *****************************************************************************/
-bool initializeADC(  uint32_t adc_base );
+bool initializeADC4POT(  uint32_t adc_base );
 
 
 /******************************************************************************
