@@ -12,6 +12,8 @@
 volatile bool ALERT_DEBOUNCE = false;
 volatile bool ALERT_5_SEC = false;
 volatile bool ALERT_2_SEC = false;
+volatile bool ALERT_GAME_TICK = false;
+volatile bool ALERT_GAME_DRAW = false;
 
 volatile bool ALERT_LED = false;
 
@@ -25,14 +27,16 @@ volatile bool ALERT_WIRELESS = false;
 extern PC_Buffer UART0_Rx_Buffer;
 extern PC_Buffer UART0_Tx_Buffer;
 
+uint16_t cntTicks = 0;
+uint16_t cntDraw = 0;
+uint8_t cntLED = 0;
+
 // ISR Used to de-bounce push buttons
 void SysTick_Handler(void) {
 	uint32_t val;
 	
 	// Let main know the timer went off
 	ALERT_DEBOUNCE = true;
-	
-	ALERT_LED = true;
 	
 	val = SysTick->VAL;
 }
@@ -41,16 +45,31 @@ void TIMER0A_Handler(void) {
 	TIMER0_Type *gp_timer;
 	ADC0_Type *myADC;
 	
-	// Clear this interrupt
-	gp_timer = (TIMER0_Type*)Timer0;
-	gp_timer->ICR |= TIMER_ICR_TATOCINT;
-	
 	// Start the ADC0 and ADC1
 	myADC = (ADC0_Type *) Adc0;
 	myADC->PSSI = ADC_PSSI_SS0;
 	
 	myADC = (ADC0_Type *) Adc1;
 	myADC->PSSI = ADC_PSSI_SS3;
+	
+	if (cntTicks++ >= 1999) {
+		ALERT_GAME_TICK = true;
+		cntTicks = 0;
+	}
+	
+	if (cntDraw++ >= 499) {
+		ALERT_GAME_DRAW = true;
+		cntDraw = 0;
+	}
+	
+	//if (cntLED++ == 40) {
+	//	cntLED = 0;
+		ALERT_LED = true;
+	//}
+	
+	// Clear this interrupt
+	gp_timer = (TIMER0_Type*)Timer0;
+	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 }
 
 // 5 Second Timer ISR
@@ -65,7 +84,7 @@ void TIMER1A_Handler() {
 	gp_timer->ICR |= TIMER_ICR_TATOCINT;
 }
 
-// 2 Second Timer ISR
+// 2 Second Timer ISR (Konami Code)
 void TIMER2A_Handler() {
 	TIMER0_Type *gp_timer;
 	
@@ -104,7 +123,7 @@ void GPIOD_Handler(void) {
 }
 
 void WDT0_Handler(void) {
-	
+	while (1) {}
 }
 
 //*****************************************************************************

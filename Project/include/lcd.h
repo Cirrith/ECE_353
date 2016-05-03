@@ -65,7 +65,7 @@
 #define 	LCD_SPI_MODE				3
 #define 	LCD_SPI_CPSR				2
 
-extern const uint8_t image[];
+extern const uint8_t bigWBitmap[];
 
 //*****************************************************************************
 // Provided initialization code for the LCD.  Found in the data sheet.
@@ -107,6 +107,7 @@ void lcd_write_data( uint8_t   data);
 //*****************************************************************************
 void lcd_write_char_10pts( uint8_t line, char c, uint8_t charIndex);
 
+void lcd_writeString(uint8_t line, char *string);
 //*****************************************************************************
 // Used to clear the LCD of all pixels
 //*****************************************************************************

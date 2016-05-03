@@ -3,6 +3,7 @@
 .\obj\main.o: C:\ProgramData\App-V\61A5EFCB-2A44-465D-90CC-A7A4A41DA0A8\7A6E59DF-8AF4-4A81-AF6C-BEAC9A01345F\Root\ARM\ARMCC\bin\..\include\stdint.h
 .\obj\main.o: C:\ProgramData\App-V\61A5EFCB-2A44-465D-90CC-A7A4A41DA0A8\7A6E59DF-8AF4-4A81-AF6C-BEAC9A01345F\Root\ARM\ARMCC\bin\..\include\string.h
 .\obj\main.o: C:\ProgramData\App-V\61A5EFCB-2A44-465D-90CC-A7A4A41DA0A8\7A6E59DF-8AF4-4A81-AF6C-BEAC9A01345F\Root\ARM\ARMCC\bin\..\include\stdbool.h
+.\obj\main.o: C:\ProgramData\App-V\61A5EFCB-2A44-465D-90CC-A7A4A41DA0A8\7A6E59DF-8AF4-4A81-AF6C-BEAC9A01345F\Root\ARM\ARMCC\bin\..\include\stdlib.h
 .\obj\main.o: C:\AppV\mdk_510\ARM\PACK\Keil\TM4C_DFP\1.0.0\Device\Include\TM4C123\TM4C123.h
 .\obj\main.o: C:\AppV\mdk_510\ARM\PACK\Keil\TM4C_DFP\1.0.0\Device\Include\TM4C123\TM4C123GH6PM.h
 .\obj\main.o: C:\AppV\mdk_510\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include\core_cm4.h
@@ -18,7 +19,6 @@
 .\obj\main.o: ../include/timers.h
 .\obj\main.o: interrupts.h
 .\obj\main.o: ../include/pc_buffer.h
-.\obj\main.o: C:\ProgramData\App-V\61A5EFCB-2A44-465D-90CC-A7A4A41DA0A8\7A6E59DF-8AF4-4A81-AF6C-BEAC9A01345F\Root\ARM\ARMCC\bin\..\include\stdlib.h
 .\obj\main.o: ../include/uart_irqs.h
 .\obj\main.o: ../include/eeprom.h
 .\obj\main.o: ../include/i2c.h
@@ -26,3 +26,5 @@
 .\obj\main.o: ../include/spi.h
 .\obj\main.o: ../include/fonts.h
 .\obj\main.o: ../include/wireless.h
+.\obj\main.o: draw.h
+.\obj\main.o: img.h

@@ -1,3 +1,4 @@
+#include <string.h>
 #include "boardUtil.h"
 
 PC_Buffer UART0_Rx_Buffer;
@@ -72,7 +73,6 @@ i2c_status_t ledSendData(uint8_t addr, uint8_t data) {
 	if (status != I2C_OK)
 		return status;
 	
-	//if (!I2CMasterDatAck(LED_I2C)) return 
 	i2cSendByte(LED_I2C, addr, I2C_MCS_START | I2C_MCS_RUN);
 	i2cSendByte(LED_I2C, data, I2C_MCS_RUN | I2C_MCS_STOP);
 	return status;
@@ -81,6 +81,47 @@ i2c_status_t ledSendData(uint8_t addr, uint8_t data) {
 void led_init(void) {
 	ledSendData(0x0, 0);
 	ledSendData(0x1, 0);
+}
+
+void eeprom_init() {
+	int i, len;
+	eeprom_byte_read(EEPROM_I2C_BASE, 0, (uint8_t *)&team[0]);
+	eeprom_byte_read(EEPROM_I2C_BASE, 1, (uint8_t *)&team[1]);
+	
+	if (team[0] != '1' || team[1] != '8') {
+		eeprom_byte_write(EEPROM_I2C_BASE, 0, '1');
+		eeprom_byte_write(EEPROM_I2C_BASE, 1, '8');
+		
+		len = strlen(ryan) + 1;
+		for (i = 0; i < len; i++) {
+			eeprom_byte_write(EEPROM_I2C_BASE, i+2, ryan[i]);
+		}
+		
+		len = strlen(nick) + 1;
+		for (i = 0; i < len; i++) {
+			eeprom_byte_write(EEPROM_I2C_BASE, i+NAMELEN+2, nick[i]);
+		}
+	}
+	
+	eeprom_byte_read(EEPROM_I2C_BASE, 0, (uint8_t *)&team[0]);
+	eeprom_byte_read(EEPROM_I2C_BASE, 1, (uint8_t *)&team[1]);
+	eeprom_byte_read(EEPROM_I2C_BASE, HSADDR, &highscore);
+	
+	for (i = 0; i < NAMELEN; i++) {
+		eeprom_byte_read(EEPROM_I2C_BASE, i+2, (uint8_t *)&person1[i]);
+		if (person1[i] == 0) break;
+	}
+	
+	for (i = 0; i < NAMELEN; i++) {
+		eeprom_byte_read(EEPROM_I2C_BASE, i+NAMELEN+2, (uint8_t *)&person2[i]);
+		if (person2[i] == 0) break;
+	}
+	
+  printf("\n\r");
+  printf("Student 1: %s\n\r", person1);
+  printf("Student 2: %s\n\r", person2);
+  printf("Team Number: %s\n\r", team);
+  printf("Last Highscore: %d\n\r", highscore);
 }
 
 void initialize_board(void)
@@ -109,56 +150,8 @@ void initialize_board(void)
 #if WATCHDOG
 	watchdog_init();
 #endif
+
+	eeprom_init();
 	
   EnableInterrupts();
-	
-	ledSetNumber(0);
-}
-
-
-void ledSetNumber(uint8_t data) {
-
-  switch (data) {
-		case 0:
-			ledSendData(0x14, 0xC1);
-			ledSendData(0x15, 2);
-		  
-			
-			ledSendData(0x14, 0xC1);
-			ledSendData(0x15, 4);
-		
-			/*ledSendData(0x14, 0xC1);
-			ledSendData(0x15, 2);
-		
-			ledSendData(0x14, 0xC1);
-			ledSendData(0x15, 2);*/
-		  break;
-		case 1:
-			
-		  break;
-		case 2:
-			
-		  break;
-		case 3:
-			
-		  break;
-		case 4:
-			
-		  break;
-		case 5:
-			
-		  break;
-		case 6:
-			
-		  break;
-		case 7:
-			
-		  break;
-		case 8:
-			
-		  break;
-		case 9:
-			
-		  break;
-	}
 }
