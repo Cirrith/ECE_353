@@ -10,13 +10,16 @@
 
 /* Parameters */
 #define DEBUG     1  // 0 = no debug msgs  1 = debug msgs
-#define WATCHDOG  0  // 0 = watch off      1 = watchdog on
+#define WATCHDOG  1  // 0 = watch off      1 = watchdog on
 /* End Parameters */
 
 #define LED_I2C  I2C1_BASE
 #define NAMELEN  81
 #define HSADDR  (2+(2*NAMELEN))
-#define PINGPACKET 0xA5
+
+#define PINGPACKET   0xFF
+#define DEADPACKET   0xFE
+#define POKEPACKET   0xE8
 
 #if DEBUG
 # define Dprintf printf

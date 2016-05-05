@@ -281,8 +281,10 @@ bool hw3_timer_enable(uint32_t base_addr, uint32_t ticks)
 // Configure Timer0 and enable its interrupt
 void hw3_timer0_init(void)
 {
+	TIMER0_Type *gp_timer = (TIMER0_Type *)TIMER0;
 	gp_timer_config_16(TIMER0_BASE, TIMER_TAMR_TAMR_PERIOD, false, true);
-	hw3_timer_enable(TIMER0_BASE, SECPT5ms_TIME);
+	hw3_timer_enable(TIMER0_BASE, SECPT5ms_TIME / 2);
+	gp_timer->TAPR = 1; //use prescale
 	NVIC_SetPriority(TIMER0A_IRQn, 1);
 	NVIC_EnableIRQ(TIMER0A_IRQn);
 }

@@ -4,6 +4,7 @@
 #include "img.h"
 
 void drawMenu(void);
+void drawBattle(uint8_t owned, uint8_t otherowned);
 void drawBulba(uint8_t frame);
 void drawChar(uint8_t frame);
 void drawSquirt(uint8_t frame);

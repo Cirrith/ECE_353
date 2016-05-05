@@ -112,7 +112,7 @@ void lcd_writeString(uint8_t line, char *string);
 // Used to clear the LCD of all pixels
 //*****************************************************************************
 void lcd_clear(void);
-
+void lcd_black(void);
 
 //*****************************************************************************
 // Initialize the LCD gpio pins and spi interface

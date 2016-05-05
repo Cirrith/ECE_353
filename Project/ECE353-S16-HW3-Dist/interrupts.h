@@ -13,7 +13,7 @@ extern volatile bool ALERT_2_SEC;
 extern volatile bool ALERT_GAME_TICK;
 extern volatile bool ALERT_GAME_DRAW;
 
-extern volatile bool ALERT_LED;
+extern volatile bool ALERT_LED; 
 
 extern volatile bool LEFT;
 extern volatile bool RIGHT;

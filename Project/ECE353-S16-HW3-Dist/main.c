@@ -40,7 +40,7 @@ bool ps2_press = false;
 
 bool konamiCodeEntered = false;
 
-const char pokeNames[4][6] = {"Bulba", "Char", "Squirt", "Pika"};
+const char pokeNames[4][7] = {"Bulba", "Char", "Squirt", "Pika"};
 const uint8_t pokeHP[4] = { 60, 40, 50, 75 };
 const uint8_t pokePower[4] = { 10, 12, 8, 15 };
 const uint8_t pokeSpeed[4] = { 8, 10, 12, 15 };
@@ -48,6 +48,7 @@ const uint16_t tempRanges[8] = { 1000, 2000, 3000, 4096, 0, 1000, 0, 4096};
 
 uint8_t pets = 0;
 uint8_t owned = 0xff;
+uint8_t otherowned = 0xff;
 double fullness = 10;
 double happiness = 10;
 double power = 10;
@@ -201,16 +202,7 @@ void eeprom_reset_values() {
 	NVIC_SystemReset();
 }
 
-void saveHighScore(bool won) {
-	uint8_t score;
-	
-	score = happiness * (hp + speed + power);
-	if (won)
-		score <<= 2;
-	
-	eeprom_byte_write(EEPROM_I2C_BASE, HSADDR, score);
-}
-
+// Draw stat bars
 void ledHappiness(void) {
 	if (happiness > 20)
 		ledSendData(0x14, 0x00);
@@ -318,41 +310,71 @@ main(void)
 	char buffer[10];
 	uint32_t data;
 	
+	uint8_t score = 0xFF;
+	uint8_t otherscore = 0xFF;
+	
 	uint8_t totalTicks;
 	uint8_t frame = 1;
 	uint8_t ledframe = 0;
 	uint8_t cracks = 0;
-	bool frameskip = false;
+	bool frameskip = false; // skip drawing some frames in animation
 	
 	uint16_t temp;
+	// action taken this tick?
 	bool petted = false;
 	bool gaveCandy = false;
 	bool gaveMeat = false;
 	bool play = false;
 	bool train = false;
 	
-	bool didStarve = false;
-  
+	bool didStarve = false; // allowed to starve once before dying
+	bool sentPlayer = false; // already sent data to other board
+	
 	initialize_board();
   drawMenu();
 	
-  // Infinite Loop
   while(1)
   {
 		konamiState = konamiStateNext;
 		
+		// Wireless interrupt
 		if (ALERT_WIRELESS) {
 			ALERT_WIRELESS = false;
 			
 			if ( wireless_get_32(false, &data) == NRF24L01_RX_SUCCESS )
 			{
 					if (data == PINGPACKET)
-						printf("PING\n\r");
-					else
-						printf("Received: %d\n\r", data);
-			}
+						Dprintf("PING\n\r");
+					else if (data == DEADPACKET) {
+						Dprintf("Other board dead!\n\r");
+						
+						lcd_clear();
+						sprintf(buffer, "OTHER DEAD");
+						lcd_writeString(1, buffer);
+						sprintf(buffer, " YOU WIN");
+						lcd_writeString(2, buffer);
+						gameStateNext = STATE_MENU;
+						
+						eeprom_byte_write(EEPROM_I2C_BASE, HSADDR, score);
+					}
+					else if ((data >> 4) == 0xE) { // id the pokemon the other board has
+						otherowned = data & 0x3;
+						if (sentPlayer) {
+							Dprintf("Other player has %s\n\r", pokeNames[otherowned]);
+						}
+						else {
+							Dprintf("Player1 has %s", pokeNames[otherowned]);
+							wireless_send_32(false, false, POKEPACKET | owned);
+							sentPlayer = true;
+						}
+					}
+					else {
+						otherscore = data;
+						Dprintf("Other player score %d\n\r", data);
+					}
 
-			PETWATCHDOG();
+				PETWATCHDOG();
+			}
 		}
 		
 		// 5 Sec Timeout
@@ -393,13 +415,11 @@ main(void)
 			ps2_press = false;
 		}
 		
+		// Update the matrix
 		if (ALERT_LED) {
 			ALERT_LED = false;
 
-			if (gameState == STATE_BATTLE) {
-				// TODO draw both players health bars
-			}
-			else if (gameState == STATE_RAISE) {
+			if (gameState == STATE_RAISE) {
 				if (ledframe)
 					ledHunger();
 				else
@@ -408,6 +428,7 @@ main(void)
 				ledframe = (ledframe + 1) % 2;
 			}
 			/*
+			Drawing all of the bar looks awful
 			else if (gameState == STATE_RAISE) {
 				if (ledframe == 0)
           ledHappiness();
@@ -432,9 +453,10 @@ main(void)
 			eeprom_reset_values();
 		}
 		
-		if (ALERT_GAME_TICK) {
+		if (ALERT_GAME_TICK) { // Game tick only every second
 			ALERT_GAME_TICK = false;
 			
+			// does math, see below for display logic
 			switch (gameState)
 			{
 				case STATE_MENU: break;
@@ -536,7 +558,11 @@ main(void)
 							lcd_writeString(1, buffer);
 							sprintf(buffer, " GAMEOVER");
 							lcd_writeString(2, buffer);
-							// TODO  Tell other board
+							
+							score = (int)(happiness * (hp + speed + power)) >> 8;
+							Dprintf("Score was %d\n\r", score);
+							eeprom_byte_write(EEPROM_I2C_BASE, HSADDR, score);
+							wireless_send_32(false, true, DEADPACKET);
 						}
 					}
 					
@@ -575,16 +601,16 @@ main(void)
           owned = 0xff;
           fullness = 10;
           happiness = 10;
+					score = 0xFF;
+					otherscore = 0xFF;
 					
 					Dprintf("EGG\n\r");
 					
 					lcd_clear();
 					sprintf(buffer, " Previous");
 					lcd_writeString(0, buffer);
-					sprintf(buffer, "   High");
-					lcd_writeString(1, buffer);
 					sprintf(buffer, " Score %d", highscore);
-					lcd_writeString(2, buffer);
+					lcd_writeString(1, buffer);
 				}
 				break;
 			}
@@ -708,17 +734,110 @@ main(void)
 					if (happiness <= 0)
 						happiness = 1;
 					
-					Dprintf("BATTLE\n\r");
+					score = (int)(happiness * (hp + speed + power)) >> 7;
+					if (score > 0xE8)
+						score = 0xE7;
+					
+					Dprintf("Score was %d\n\r", score);
+					eeprom_byte_write(EEPROM_I2C_BASE, HSADDR, score);
+					
+					wireless_send_32(false, false, POKEPACKET | owned);
+					
+					lcd_clear();
+					sprintf(buffer, "  BATTLE");
+					lcd_writeString(1, buffer);
+					
+					Dprintf("STATE_BATTLE\n\r");
 				}
 				break;
 			}
 			case STATE_BATTLE:
 			{
-				
-				/*if (done) {
-					gameStateNext = STATE_MENU;
-					Dprintf("MENU\n\r");
-				}*/
+				if (ALERT_GAME_DRAW) {
+					ALERT_GAME_DRAW = false;
+					
+					if (ticksInState < 2) {
+						lcd_clear();
+						sprintf(buffer, "  BATTLE");
+						lcd_writeString(1, buffer);
+					}
+					else if (ticksInState == 3) {
+						lcd_clear();
+						drawBattle(owned, otherowned);
+						wireless_send_32(false, false, score);
+					}
+					else if (ticksInState == 7) {
+						lcd_black();
+						wireless_send_32(false, false, POKEPACKET | owned);
+					}
+					else if (ticksInState == 8) {
+						sprintf(buffer, "Waiting...");
+						lcd_writeString(0, buffer);
+						wireless_send_32(false, false, score);
+					}
+					else if (ticksInState > 9) {
+						if (otherscore != 0xFF) {
+							lcd_clear();
+							if (otherscore > score) {
+								sprintf(buffer, "You Lose");
+								lcd_writeString(3, buffer);
+								switch(otherowned) {
+									case 0:
+									{
+										drawBulba(2);
+										break;
+									}
+									case 1:
+									{
+										drawChar(2);
+										break;
+									}
+									case 2:
+									{
+										drawSquirt(2);
+										break;
+									}
+									case 3:
+									{
+										drawPika(2);
+										break;
+									}
+								}
+							}
+							else if (otherscore < score) {
+								sprintf(buffer, "You Win");
+								lcd_writeString(3, buffer);
+								
+								switch(owned) {
+									case 0:
+									{
+										drawBulba(2);
+										break;
+									}
+									case 1:
+									{
+										drawChar(2);
+										break;
+									}
+									case 2:
+									{
+										drawSquirt(2);
+										break;
+									}
+									case 3:
+									{
+										drawPika(2);
+										break;
+									}
+								}
+							}
+							else {
+								sprintf(buffer, " You Tie");
+								lcd_writeString(1, buffer);
+							}
+						}
+					}
+				}
 				break;
 			}
 		}

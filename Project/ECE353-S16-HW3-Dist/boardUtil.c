@@ -4,8 +4,8 @@
 PC_Buffer UART0_Rx_Buffer;
 PC_Buffer UART0_Tx_Buffer;
 
-uint8_t myID[]      = { '3', '5', '3', '7', '1'};
-uint8_t remoteID[]  = { '3', '5', '3', '7', '0'};
+uint8_t myID[]      = { '3', '5', '3', '7', '0'};
+uint8_t remoteID[]  = { '3', '5', '3', '7', '1'};
 
 void DisableInterrupts(void)
 {

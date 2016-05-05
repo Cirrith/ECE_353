@@ -265,6 +265,23 @@ void lcd_clear(void)
     }
 }
 
+void lcd_black(void)
+{
+  uint8_t page;
+  uint8_t colCount;
+  
+  for(page = 0; page < LCD_NUM_PAGES; page++)
+  {
+      lcd_set_page(page) ;
+
+      for( colCount=0; colCount< LCD_NUM_COL; colCount++)
+      {
+        lcd_set_column(colCount);
+        lcd_write_data(0xFF);
+      }
+    }
+}
+
 //*****************************************************************************
 // Provided initialization code for the LCD.  Found in the data sheet.
 //*****************************************************************************

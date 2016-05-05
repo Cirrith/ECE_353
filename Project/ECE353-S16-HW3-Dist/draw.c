@@ -30,6 +30,95 @@ void drawMenu(void) {
 	lcd_writeString(3, buffer);
 }
 
+void drawBattle(uint8_t owned, uint8_t otherowned) {
+	const uint8_t *ptrOwned;
+	uint8_t i, j, oWidth, oHeight;
+	
+	switch (owned)
+	{
+		case 0:
+		{
+			ptrOwned = bulbaBackBitmap;
+			oWidth = bulbaBackWidthPixels;
+			oHeight = bulbaBackHeightPages;
+			break;
+		}
+		case 1:
+		{
+			ptrOwned = charBackBitmap;
+			oWidth = charBackWidthPixels;
+			oHeight = charBackHeightPages;
+			break;
+		}
+		case 2:
+		{
+			ptrOwned = squirtBackBitmap;
+			oWidth = squirtBackWidthPixels;
+			oHeight = squirtBackHeightPages;
+			break;
+		}
+		case 3:
+		{
+			ptrOwned = pikaBackBitmap;
+			oWidth = pikaBackWidthPixels;
+			oHeight = pikaBackHeightPages;
+			break;
+		}
+	}
+	
+	for(i = 0; i < oHeight; i++)
+  {
+    lcd_set_page(i+3);
+    for(j=0; j<oWidth; j++)
+    {
+      lcd_set_column(j+5);
+      lcd_write_data(ptrOwned[i*oWidth + j]);
+    }
+  }
+	
+	switch (otherowned)
+	{
+		case 0:
+		{
+			ptrOwned = bulba0Bitmap;
+			oWidth = bulba0WidthPixels;
+			oHeight = bulba0HeightPages;
+			break;
+		}
+		case 1:
+		{
+			ptrOwned = char0Bitmap;
+			oWidth = char0WidthPixels;
+			oHeight = char0HeightPages;
+			break;
+		}
+		case 2:
+		{
+			ptrOwned = squirt0Bitmap;
+			oWidth = squirt0WidthPixels;
+			oHeight = squirt0HeightPages;
+			break;
+		}
+		case 3:
+		{
+			ptrOwned = pika0Bitmap;
+			oWidth = pika0WidthPixels;
+			oHeight = pika0HeightPages;
+			break;
+		}
+	}
+	
+	for(i = 0; i < oHeight; i++)
+  {
+    lcd_set_page(i);
+    for(j=0; j<oWidth; j++)
+    {
+      lcd_set_column(j+50);
+      lcd_write_data(ptrOwned[i*oWidth + j]);
+    }
+  }
+}
+
 void drawBulba(uint8_t frame) {
 	const uint8_t *ptrFrame;
 	uint8_t i, j, width, height;

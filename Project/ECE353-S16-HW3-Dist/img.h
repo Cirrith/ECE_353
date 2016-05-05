@@ -44,6 +44,10 @@ extern const uint8_t pika2Bitmap[];
 extern const uint8_t pika2WidthPixels;
 extern const uint8_t pika2HeightPages;
 
+extern const uint8_t pikaBackBitmap[];
+extern const uint8_t pikaBackWidthPixels;
+extern const uint8_t pikaBackHeightPages;
+
 extern const uint8_t bulba0Bitmap[];
 extern const uint8_t bulba0WidthPixels;
 extern const uint8_t bulba0HeightPages;
@@ -53,6 +57,9 @@ extern const uint8_t bulba1HeightPages;
 extern const uint8_t bulba2Bitmap[];
 extern const uint8_t bulba2WidthPixels;
 extern const uint8_t bulba2HeightPages;
+extern const uint8_t bulbaBackBitmap[];
+extern const uint8_t bulbaBackWidthPixels;
+extern const uint8_t bulbaBackHeightPages;
 
 extern const uint8_t char0Bitmap[];
 extern const uint8_t char0WidthPixels;
@@ -63,6 +70,9 @@ extern const uint8_t char1HeightPages;
 extern const uint8_t char2Bitmap[];
 extern const uint8_t char2WidthPixels;
 extern const uint8_t char2HeightPages;
+extern const uint8_t charBackBitmap[];
+extern const uint8_t charBackWidthPixels;
+extern const uint8_t charBackHeightPages;
 
 extern const uint8_t squirt0Bitmap[];
 extern const uint8_t squirt0WidthPixels;
@@ -73,6 +83,10 @@ extern const uint8_t squirt1HeightPages;
 extern const uint8_t squirt2Bitmap[];
 extern const uint8_t squirt2WidthPixels;
 extern const uint8_t squirt2HeightPages;
+
+extern const uint8_t squirtBackBitmap[];
+extern const uint8_t squirtBackWidthPixels;
+extern const uint8_t squirtBackHeightPages;
 
 /* Bitmap info for egg */
 extern const uint8_t egg0Bitmap[];
